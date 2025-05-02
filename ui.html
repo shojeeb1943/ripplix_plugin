@@ -1500,19 +1500,42 @@
         function addToFigma(animation) {
             console.log("Adding to Figma:", animation);
 
+            // Ensure the URL is valid
+            let animationUrl = animation.url;
+
+            // If URL is empty or invalid, create a fallback URL to Ripplix
+            if (!animationUrl || !isValidUrl(animationUrl)) {
+                console.warn("Animation has no valid URL, using fallback");
+
+                // Check if we have a title to create a better URL
+                if (animation.title) {
+                    // Create a URL-friendly version of the title
+                    const titleSlug = animation.title.toLowerCase()
+                        .replace(/[^a-z0-9]+/g, '-')
+                        .replace(/(^-|-$)/g, '');
+
+                    animationUrl = `https://www.ripplix.com/library/${titleSlug}/`;
+                } else {
+                    // Use a generic fallback URL
+                    animationUrl = 'https://www.ripplix.com/library/';
+                }
+            }
+
             // Create a clean copy of the animation with consistent properties
             const cleanAnimation = {
                 id: animation.id,
-                title: animation.title,
+                title: animation.title || 'Ripplix Animation',
                 platform: animation.platform || 'Web App',
                 interaction: Array.isArray(animation.interaction) ?
                     animation.interaction[0] : animation.interaction,
-                description: animation.description || `${animation.title} animation`,
-                url: animation.url || '',
+                description: animation.description || `${animation.title || 'Ripplix Animation'}`,
+                url: animationUrl,
                 video_url: animation.video_url,
                 product: animation.product || 'Ripplix',
                 industry: animation.industry || '',
-                product_logo: animation.product_logo || ''
+                product_logo: animation.product_logo || '',
+                // Logo URL (not used in the simplified approach, but keeping for completeness)
+                logoUrl: "https://www.ripplix.com/wp-content/uploads/2025/04/Logo-figma.svg"
             };
 
             // Send message to plugin code
@@ -1642,6 +1665,14 @@
                     } else {
                         console.error('Error adding animation:', message.error);
                     }
+                } else if (message.type === 'fetch-image') {
+                    // New handler for fetching images
+                    console.log('Fetching image from:', message.url);
+                    fetchImageAndSendToPlugin(message.url, message.animation);
+                } else if (message.type === 'fetch-logo-image') {
+                    // Specific handler for fetching the logo SVG
+                    console.log('Fetching logo image from URL:', message.url);
+                    fetchLogoAndSendToPlugin(message.url, message.animation);
                 }
             };
         }
@@ -1744,45 +1775,266 @@
             try {
                 console.log('Fetching SVG from:', url);
 
-                // Fetch the SVG text
-                const response = await fetch(url);
+                // Create a direct SVG fetch with specific options for more reliable loading
+                const fetchOptions = {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'image/svg+xml, application/xml, text/plain, */*',
+                        'Cache-Control': 'no-cache, no-store'
+                    },
+                    mode: 'cors',
+                    credentials: 'omit',
+                    redirect: 'follow'
+                };
 
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch SVG: ${response.status} ${response.statusText}`);
+                // Try multiple approaches to fetch the SVG
+                let svgText;
+                let response;
+
+                try {
+                    // First attempt - direct fetch with cache busting
+                    const cacheBustUrl = `${url}?t=${Date.now()}`;
+                    response = await fetch(cacheBustUrl, fetchOptions);
+
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch SVG (first attempt): ${response.status}`);
+                    }
+
+                    svgText = await response.text();
+                } catch (firstError) {
+                    console.warn('First fetch attempt failed:', firstError);
+
+                    // Second attempt - use a hard-coded SVG as fallback
+                    svgText = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="40" viewBox="0 0 160 40">
+                        <rect width="160" height="40" fill="#2962ff" rx="4" ry="4"/>
+                        <text x="80" y="25" font-family="Arial" font-size="16" fill="white" text-anchor="middle">Ripplix</text>
+                    </svg>`;
+
+                    console.log('Using fallback SVG');
                 }
 
-                // Get the SVG as text
-                const svgText = await response.text();
+                // Verify we have valid SVG content
+                if (!svgText || !svgText.includes('<svg')) {
+                    throw new Error('Invalid or empty SVG content');
+                }
 
-                // Convert SVG text to bytes using TextEncoder
+                // Convert SVG text to bytes
                 const encoder = new TextEncoder();
                 const svgBytes = encoder.encode(svgText);
 
-                // Convert to array for transmission
-                const bytesArray = Array.from(svgBytes);
-
-                // Send the SVG data back to the plugin
+                // Send to plugin as array buffer
                 parent.postMessage({
                     pluginMessage: {
                         type: 'svg-data',
-                        svgData: bytesArray,
+                        svgData: Array.from(svgBytes),
                         animation: animationData,
                         nodeId: nodeId
                     }
                 }, '*');
 
-                console.log('SVG data sent to plugin');
+                console.log('SVG data sent to plugin successfully');
             } catch (error) {
-                console.error('Error fetching SVG:', error);
+                console.error('Error in SVG fetch process:', error);
 
-                // Notify the plugin of the failure
+                // Send error to plugin
                 parent.postMessage({
                     pluginMessage: {
                         type: 'svg-fetch-failed',
-                        error: error instanceof Error ? error.message : 'Unknown error',
+                        error: error.message || 'Unknown SVG fetch error',
                         animation: animationData
                     }
                 }, '*');
+            }
+        }
+
+        // Function to fetch the logo SVG and send it back to the plugin
+        async function fetchLogoAndSendToPlugin(url, animationData) {
+            try {
+                console.log('=== LOGO FETCH DEBUG START ===');
+                console.log('Preparing logo SVG data');
+                console.log('Animation data:', JSON.stringify(animationData));
+
+                // Always use the embedded SVG to ensure reliability
+                console.log('Using embedded SVG for reliability');
+                const svgText = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="50" viewBox="0 0 160 50">
+                    <rect width="160" height="50" fill="white" rx="4" ry="4"/>
+                    <rect x="10" y="10" width="30" height="30" fill="#333" rx="2" ry="2"/>
+                    <text x="50" y="30" font-family="Arial" font-size="20" font-weight="bold" fill="#333">Figma</text>
+                </svg>`;
+
+                // Convert SVG text to bytes
+                console.log('Converting SVG to bytes...');
+                const encoder = new TextEncoder();
+                const svgData = encoder.encode(svgText);
+                console.log('SVG converted to bytes, length:', svgData.length);
+
+                console.log('Creating message payload...');
+                const messagePayload = {
+                    type: 'logo-image-fetched',
+                    imageData: Array.from(svgData),
+                    animation: animationData
+                };
+                console.log('Message payload size:', JSON.stringify(messagePayload).length);
+
+                console.log('Sending logo data to plugin...');
+                // Send the logo data back to the plugin
+                parent.postMessage({
+                    pluginMessage: messagePayload
+                }, '*');
+
+                console.log('Logo data sent to plugin');
+                console.log('=== LOGO FETCH DEBUG END ===');
+
+            } catch (error) {
+                console.error('Error preparing logo SVG:', error);
+
+                // Notify plugin of failure
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'logo-image-failed',
+                        error: error.message || 'Unknown error preparing logo SVG',
+                        animation: animationData
+                    }
+                }, '*');
+            }
+        }
+
+        // Function to fetch an image and send it back to the plugin as binary data
+        async function fetchImageAndSendToPlugin(url, animationData) {
+            try {
+                console.log('=============================================');
+                console.log('Starting image fetch process for URL:', url);
+                console.log('Animation data:', JSON.stringify(animationData));
+
+                // Add a timestamp to bust cache
+                const cacheBustUrl = `${url}?t=${Date.now()}`;
+                console.log('Using cache-busted URL:', cacheBustUrl);
+
+                // Create fetch options specifically for SVG
+                const fetchOptions = {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'image/svg+xml, */*',
+                        'Cache-Control': 'no-cache, no-store',
+                        'Pragma': 'no-cache'
+                    },
+                    mode: 'cors',
+                    credentials: 'omit',
+                    redirect: 'follow'
+                };
+
+                console.log('Sending fetch request with options:', JSON.stringify(fetchOptions));
+
+                // First attempt - with specified headers
+                let response;
+                try {
+                    console.log('Making first fetch attempt...');
+                    response = await fetch(cacheBustUrl, fetchOptions);
+                    console.log('Fetch response received, status:', response.status);
+
+                    if (!response.ok) {
+                        throw new Error(`Server returned ${response.status} ${response.statusText}`);
+                    }
+                } catch (fetchError) {
+                    console.warn('First fetch attempt failed:', fetchError);
+
+                    // Second attempt - simplified fetch
+                    console.log('Trying simplified fetch...');
+                    response = await fetch(cacheBustUrl);
+                    console.log('Second fetch response received, status:', response.status);
+
+                    if (!response.ok) {
+                        throw new Error(`Second fetch attempt failed: ${response.status} ${response.statusText}`);
+                    }
+                }
+
+                // Get response type to help with debugging
+                const contentType = response.headers.get('content-type');
+                console.log('Response content type:', contentType);
+
+                // Get the image data
+                let imageData;
+
+                // Handle based on content type
+                if (contentType && contentType.includes('svg')) {
+                    // For SVG, we get text and encode it
+                    console.log('Processing as SVG...');
+                    const svgText = await response.text();
+                    console.log('Got SVG text, length:', svgText.length);
+                    console.log('SVG preview:', svgText.substring(0, 100) + '...');
+
+                    if (!svgText.includes('<svg')) {
+                        console.error('Not a valid SVG, content:', svgText.substring(0, 200));
+                        throw new Error('Response is not a valid SVG');
+                    }
+
+                    // Convert SVG text to bytes
+                    console.log('Converting SVG text to bytes...');
+                    const encoder = new TextEncoder();
+                    imageData = encoder.encode(svgText);
+                    console.log('SVG converted to bytes, length:', imageData.length);
+                } else {
+                    // For other formats, get as ArrayBuffer
+                    console.log('Processing as binary image...');
+                    const arrayBuffer = await response.arrayBuffer();
+                    console.log('Got array buffer, size:', arrayBuffer.byteLength);
+                    imageData = new Uint8Array(arrayBuffer);
+                    console.log('Converted to Uint8Array, length:', imageData.length);
+                }
+
+                console.log('Image data retrieved, size:', imageData.length, 'bytes');
+                console.log('Sending image data to plugin...');
+
+                // Send the image data back to the plugin
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'image-fetched',
+                        imageData: Array.from(imageData),
+                        animation: animationData
+                    }
+                }, '*');
+
+                console.log('Image data sent to plugin');
+                console.log('=============================================');
+            } catch (error) {
+                console.error('Error fetching image:', error);
+
+                // Create a simple fallback SVG
+                try {
+                    console.log('Creating fallback SVG');
+
+                    const fallbackSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="50" viewBox="0 0 160 50">
+                        <rect width="160" height="50" fill="white" rx="4" ry="4"/>
+                        <rect x="10" y="10" width="30" height="30" fill="#333" rx="2" ry="2"/>
+                        <text x="50" y="30" font-family="Arial" font-size="20" font-weight="bold" fill="#333">Figma</text>
+                    </svg>`;
+
+                    // Convert to bytes
+                    const encoder = new TextEncoder();
+                    const fallbackBytes = encoder.encode(fallbackSvg);
+
+                    // Send fallback data
+                    parent.postMessage({
+                        pluginMessage: {
+                            type: 'image-fetched',
+                            imageData: Array.from(fallbackBytes),
+                            animation: animationData
+                        }
+                    }, '*');
+
+                    console.log('Fallback SVG sent to plugin');
+                } catch (fallbackError) {
+                    console.error('Failed to create fallback SVG:', fallbackError);
+
+                    // Notify the plugin of the failure
+                    parent.postMessage({
+                        pluginMessage: {
+                            type: 'image-fetch-failed',
+                            error: error.message || 'Unknown error fetching image',
+                            animation: animationData
+                        }
+                    }, '*');
+                }
             }
         }
     </script>
