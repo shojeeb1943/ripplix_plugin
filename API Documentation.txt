@@ -1,0 +1,179 @@
+# Ripplix Animation API Documentation
+
+## Overview
+
+The Ripplix Animation API provides access to a collection of UI/UX animations with rich metadata for filtering and categorization. This documentation explains how to use the API to fetch animations and filter them by product, platform, industry, and interaction type.
+
+## Base URL
+
+```
+https://www.ripplix.com/wp-json/ripplix/v1/
+```
+
+## Endpoints
+
+### Get Animations
+
+Retrieve animation data with optional filtering.
+
+**Endpoint:** `/animations/`
+
+**Method:** `GET`
+
+**Query Parameters:**
+
+| Parameter | Type | Description | Example |
+|-----------|------|-------------|---------|
+| product | string | Filter animations by product name | `Stykovka` |
+| platform | string | Filter animations by platform | `Website` |
+| industry | string | Filter animations by industry | `Finance` |
+| interaction | string | Filter animations by interaction type | `Button Hover` |
+
+**Response Format:**
+
+The response is a JSON object containing:
+
+1. `animations`: Array of animation objects
+2. `products`: Array of all available product names
+3. `platforms`: Array of all available platform names
+4. `industries`: Array of all available industry names
+5. `interactions`: Array of all available interaction types
+
+**Animation Object Properties:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| id | integer | Unique identifier for the animation |
+| title | string | Title of the animation |
+| url | string | Permalink to the animation detail page |
+| video_url | string | URL to the animation video |
+| product | string | Name of the product associated with the animation |
+| product_logo | string | URL to the product logo image |
+| platform | string | Platform type (Website, Mobile App, Web App, etc.) |
+| industry | string | Industry category |
+| interaction | array | Array of interaction types for this animation |
+| logo | string | URL to the Ripplix logo |
+
+## Example Requests
+
+### Get All Animations
+
+```
+GET https://www.ripplix.com/wp-json/ripplix/v1/animations/
+```
+
+### Filter by Product
+
+```
+GET https://www.ripplix.com/wp-json/ripplix/v1/animations/?product=Figma
+```
+
+### Filter by Platform and Interaction
+
+```
+GET https://www.ripplix.com/wp-json/ripplix/v1/animations/?platform=Website&interaction=Button%20Hover
+```
+
+## Example Response
+
+```json
+{
+  "animations": [
+    {
+      "id": 6856,
+      "title": "Dropdown Date Picker – Drip – Productivity",
+      "url": "https://www.ripplix.com/library/dropdown-date-picker-drip-productivity/",
+      "video_url": "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/204cb44e053743fa4b1229f9affbf6f3/downloads/default.mp4",
+      "product": "Drip",
+      "product_logo": "https://www.ripplix.com/wp-content/uploads/2025/03/drip-logo.jpg",
+      "platform": "Web App",
+      "industry": "Finance",
+      "interaction": ["Dropdown", "Date Picker"],
+      "logo": "https://www.ripplix.com/wp-content/uploads/2025/04/Logo-figma.svg"
+    },
+    // Additional animations...
+  ],
+  "products": ["Stykovka", "Drip", "Figma", "..."],
+  "platforms": ["Website", "Mobile App", "Web App", "..."],
+  "industries": ["Finance", "Health", "Education", "..."],
+  "interactions": ["Button Hover", "Dropdown", "Modal", "..."]
+}
+```
+
+## Using the API in Figma Plugin
+
+### JavaScript Example
+
+Here's how you might use the API in a Figma plugin:
+
+```javascript
+// Function to fetch animations with optional filters
+async function fetchAnimations(filters = {}) {
+  // Build query string from filters
+  const queryParams = new URLSearchParams();
+  
+  if (filters.product) queryParams.append('product', filters.product);
+  if (filters.platform) queryParams.append('platform', filters.platform);
+  if (filters.industry) queryParams.append('industry', filters.industry);
+  if (filters.interaction) queryParams.append('interaction', filters.interaction);
+  
+  const queryString = queryParams.toString();
+  const endpoint = `https://www.ripplix.com/wp-json/ripplix/v1/animations/${queryString ? '?' + queryString : ''}`;
+  
+  try {
+    const response = await fetch(endpoint);
+    if (!response.ok) {
+      throw new Error(`Error: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch animations:', error);
+    return null;
+  }
+}
+
+// Example usage in Figma plugin
+async function loadAnimationsInPlugin() {
+  // Show loading state
+  figma.ui.postMessage({ type: 'loading', message: 'Fetching animations...' });
+  
+  // Get animations filtered by platform and interaction
+  const data = await fetchAnimations({
+    platform: 'Website',
+    interaction: 'Button Hover'
+  });
+  
+  if (data) {
+    // Update UI with animations and filter options
+    figma.ui.postMessage({
+      type: 'animation-data',
+      animations: data.animations,
+      filterOptions: {
+        products: data.products,
+        platforms: data.platforms,
+        industries: data.industries,
+        interactions: data.interactions
+      }
+    });
+  } else {
+    // Show error
+    figma.ui.postMessage({ type: 'error', message: 'Failed to load animations' });
+  }
+}
+```
+
+## Error Handling
+
+The API returns standard HTTP status codes:
+
+- `200 OK`: Request successful
+- `400 Bad Request`: Invalid request (check your parameters)
+- `404 Not Found`: The requested resource doesn't exist
+- `500 Internal Server Error`: Server-side error
+
+## Additional Notes
+
+- All text responses are in UTF-8 encoding and HTML entities are decoded
+- Filters are case-insensitive
+- When no animations match the filter criteria, an empty array is returned
+- The animation list includes all metadata needed for display and filtering

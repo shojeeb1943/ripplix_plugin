@@ -1,0 +1,135 @@
+**Ripplix Animation API Documentation**
+
+## **Overview**
+The Ripplix Animation API provides access to a library of UI/UX animations. This API is designed to be used in applications like Figma plugins, web applications, and other design tools.
+
+## **Base API Endpoint**
+```
+https://www.ripplix.com/wp-json/ripplix/v1/animations/
+```
+
+## **Request Methods**
+- **GET**: Retrieve animation data
+
+## **Response Format**
+- JSON
+
+---
+
+## **Fetching All Animations**
+### **Endpoint:**
+```
+GET /animations/
+```
+### **Example Request:**
+```
+https://www.ripplix.com/wp-json/ripplix/v1/animations/
+```
+### **Example Response:**
+```json
+[
+  {
+    "id": 6856,
+    "title": "Dropdown, date picker - Drip - Productivity",
+    "url": "https://www.ripplix.com/library/dropdown-date-picker-drip-productivity/",
+    "video_url": "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/204cb44e053743fa4b1229f9affbf6f3/downloads/default.mp4",
+    "app": "mobbin",
+    "platform": "Web App",
+    "industry": "Finance",
+    "interaction": "Loader",
+    "logo": "https://www.ripplix.com/wp-content/uploads/2024/12/header-logo-button-1.svg"
+  }
+]
+```
+---
+
+## **Filtering Animations**
+### **Filter by Platform**
+Fetch animations based on the platform (Web App, Mobile App, etc.).
+```
+GET /animations/?platform=Web%20App
+```
+Example:
+```
+https://www.ripplix.com/wp-json/ripplix/v1/animations/?platform=Web%20App
+```
+
+### **Filter by Interaction**
+Fetch animations based on interaction type (Hover, Tooltip, Accordion, etc.).
+```
+GET /animations/?interaction=Hover
+```
+Example:
+```
+https://www.ripplix.com/wp-json/ripplix/v1/animations/?interaction=Hover
+```
+
+### **Combine Filters**
+You can filter using both **platform** and **interaction** parameters.
+```
+GET /animations/?platform=Mobile%20App&interaction=Tooltip
+```
+Example:
+```
+https://www.ripplix.com/wp-json/ripplix/v1/animations/?platform=Mobile%20App&interaction=Tooltip
+```
+
+---
+
+## **Integrating the API with a Figma Plugin**
+
+### **1. Fetch Data in Figma Plugin**
+Use the `fetch()` function in JavaScript to retrieve animation data.
+```js
+async function getAnimations() {
+    const response = await fetch("https://www.ripplix.com/wp-json/ripplix/v1/animations/");
+    const data = await response.json();
+    console.log(data); // Output animation data
+}
+```
+
+### **2. Display Animations in Figma Plugin UI**
+Use Figma's `figma.ui` to show animation previews.
+```js
+figma.ui.postMessage({ type: "animations", data: animations });
+```
+
+### **3. Filtering in Figma Plugin**
+```js
+async function filterAnimations(platform, interaction) {
+    const url = `https://www.ripplix.com/wp-json/ripplix/v1/animations/?platform=${platform}&interaction=${interaction}`;
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+}
+```
+
+### **4. Embedding Animation Preview in Figma Plugin**
+```js
+const videoElement = document.createElement("video");
+videoElement.src = animation.video_url;
+videoElement.controls = true;
+document.body.appendChild(videoElement);
+```
+
+---
+
+## **Error Handling**
+Ensure error handling is in place for failed requests.
+```js
+async function getAnimationsSafe() {
+    try {
+        const response = await fetch("https://www.ripplix.com/wp-json/ripplix/v1/animations/");
+        if (!response.ok) throw new Error("Failed to fetch data");
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error fetching animations:", error);
+    }
+}
+```
+
+---
+
+## **Conclusion**
+This API allows Figma plugin developers to fetch and display UI/UX animations easily. It supports filtering based on platform and interaction type, making it versatile for various use cases. 🚀
