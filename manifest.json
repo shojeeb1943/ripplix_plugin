@@ -1,13 +1,35 @@
 {
-    "name": "Simple Rectangle",
+    "name": "Ripplix Animation Library",
     "id": "1234567890",
     "api": "1.0.0",
     "main": "code.js",
-    "ui": "ui.html",
-    "editorType": ["figma"],
     "capabilities": [],
+    "enableProposedApi": false,
+    "documentAccess": "dynamic-page",
+    "editorType": [
+        "figma"
+    ],
+    "ui": "ui.html",
     "networkAccess": {
-        "allowedDomains": ["https://www.ripplix.com"],
-        "reasoning": "Need to load Figma logo from Ripplix website"
-    }
+        "allowedDomains": [
+            "https://www.ripplix.com",
+            "https://cdn.dribbble.com",
+            "https://player.vimeo.com",
+            "https://*.vimeo.com",
+            "https://*.dribbble.com",
+            "https://videodelivery.net",
+            "https://*.cloudflarestream.com",
+            "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com",
+            "https://gumlet.io",
+            "https://*.gumlet.io",
+            "https://storage.googleapis.com",
+            "https://www.youtube.com",
+            "https://youtu.be",
+            "https://*.youtube.com"
+        ],
+        "reasoning": "Fetch animations from Ripplix database and third-party video sources"
+    },
+    "menu": [
+        { "name": "Open Ripplix Library", "command": "open" }
+    ]
 }

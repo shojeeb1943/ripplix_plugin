@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Ripplix Animation Library</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #333;
+            background-color: #f9f9f9;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: white;
+        }
+        
+        .title {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .close-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .search-container {
+            padding: 12px 16px;
+            display: flex;
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .filters {
+            display: flex;
+            padding: 8px 16px;
+            gap: 16px;
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .filter-label {
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .filter-options {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .animation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            padding: 16px;
+        }
+        
+        .animation-card {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: white;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .animation-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .video-container {
+            position: relative;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
+            background-color: #000;
+        }
+        
+        .video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .play-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0,0,0,0.3);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        
+        .play-overlay:hover {
+            opacity: 1;
+        }
+        
+        .play-icon {
+            width: 48px;
+            height: 48px;
+            background-color: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .animation-info {
+            padding: 12px;
+        }
+        
+        .animation-title {
+            font-weight: 600;
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .animation-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .meta-tag {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        
+        .add-button {
+            background-color: #0d99ff;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .add-button:hover {
+            background-color: #0a7fd6;
+        }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            font-size: 16px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">Ripplix Animation Library</h1>
+        <button class="close-btn" id="close-btn">✕</button>
+    </div>
+    
+    <div class="search-container">
+        <input type="text" id="search-input" class="search-input" placeholder="Search animations...">
+    </div>
+    
+    <div class="filters">
+        <div class="filter-label">Platform:</div>
+        <div class="filter-options" id="platform-filters"></div>
+        
+        <div class="filter-label">Interaction:</div>
+        <div class="filter-options" id="interaction-filters"></div>
+    </div>
+    
+    <div id="animations-container">
+        <!-- This will be populated with animations -->
+    </div>
+    
+    <div id="preview-modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(0,0,0,0.7); z-index: 100; justify-content: center; align-items: center;">
+        <div style="background-color: white; border-radius: 8px; width: 80%; max-width: 800px; max-height: 90%; overflow: auto; position: relative;">
+            <button id="preview-close" style="position: absolute; top: 12px; right: 12px; background: transparent; border: none; font-size: 20px; cursor: pointer;">✕</button>
+            <div style="padding: 16px; border-bottom: 1px solid #e0e0e0;">
+                <h2 id="preview-title" style="margin: 0 0 8px 0;"></h2>
+                <div id="preview-meta" style="display: flex; gap: 8px;"></div>
+            </div>
+            <div class="video-wrapper" style="padding: 16px;"></div>
+            <div style="padding: 16px; border-top: 1px solid #e0e0e0;">
+                <button id="preview-add" style="background-color: #0d99ff; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer;">Add to Figma</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Set up global variables
+        let allAnimations = [];
+        let userHasInteracted = false;
+        let lastClickTime = 0;
+        let preventRandomModals = true;
+        
+        // DOM ready handler
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log("DOM loaded, initializing plugin");
+            
+            // Initialize the app
+            initApp();
+            
+            // Set emergency backup to load animations after 3 seconds
+            setTimeout(checkAndFixAnimations, 3000);
+        });
+        
+        // Initialize the application
+        async function initApp() {
+            console.log("Initializing Ripplix Animation Library");
+            
+            try {
+                // Try to unlock autoplay early
+                unlockAutoplay();
+                
+                // Show loading message
+                document.getElementById('animations-container').innerHTML = '<div class="loading">Loading animations...</div>';
+                
+                // Get hardcoded animations
+                const animations = getGuaranteedAnimations();
+                
+                // Create animation grid
+                createAnimationGrid(animations);
+                
+                // Set up event handlers
+                setupEventHandlers();
+                
+                console.log("Animation library initialized successfully");
+            } catch (error) {
+                console.error("Error initializing app:", error);
+                
+                // Show error to user
+                document.getElementById('animations-container').innerHTML = 
+                    `<div class="loading">Error initializing app. <br><br>
+                    <button onclick="window.location.reload()">Reload Plugin</button></div>`;
+            }
+        }
+        
+        // Create animation grid
+        function createAnimationGrid(animations) {
+            console.log(`Creating animation grid with ${animations.length} animations`);
+            
+            // Get container and clear it
+            const container = document.getElementById('animations-container');
+            container.innerHTML = '';
+            
+            // Create grid
+            const grid = document.createElement('div');
+            grid.className = 'animation-grid';
+            
+            // Add animation cards
+            animations.forEach((animation, index) => {
+                const card = createAnimationCard(animation);
+                grid.appendChild(card);
+            });
+            
+            // Add grid to container
+            container.appendChild(grid);
+            
+            // Start loading videos
+            setTimeout(playAllVideos, 100);
+        }
+        
+        // Create animation card
+        function createAnimationCard(animation) {
+            // Create card
+            const card = document.createElement('div');
+            card.className = 'animation-card';
+            
+            // Create video container
+            const videoContainer = document.createElement('div');
+            videoContainer.className = 'video-container';
+            
+            // Create video element
+            const video = document.createElement('video');
+            video.className = 'video-player';
+            video.muted = true;
+            video.loop = true;
+            video.playsInline = true;
+            video.autoplay = true;
+            video.setAttribute('muted', '');
+            video.setAttribute('playsinline', '');
+            video.setAttribute('autoplay', '');
+            video.setAttribute('loop', '');
+            
+            // Set video source
+            video.src = animation.video_url;
+            
+            // Add play overlay
+            const playOverlay = document.createElement('div');
+            playOverlay.className = 'play-overlay';
+            playOverlay.innerHTML = '<div class="play-icon">▶</div>';
+            playOverlay.onclick = (e) => {
+                e.stopPropagation();
+                video.play().catch(err => console.error("Play failed:", err));
+            };
+            
+            // Add to container
+            videoContainer.appendChild(video);
+            videoContainer.appendChild(playOverlay);
+            card.appendChild(videoContainer);
+            
+            // Create info section
+            const info = document.createElement('div');
+            info.className = 'animation-info';
+            
+            // Add title
+            const title = document.createElement('div');
+            title.className = 'animation-title';
+            title.textContent = animation.title;
+            info.appendChild(title);
+            
+            // Add meta tags
+            const meta = document.createElement('div');
+            meta.className = 'animation-meta';
+            
+            if (animation.platform) {
+                const platformTag = document.createElement('span');
+                platformTag.className = 'meta-tag';
+                platformTag.textContent = animation.platform;
+                meta.appendChild(platformTag);
+            }
+            
+            if (animation.interaction) {
+                const interactionTag = document.createElement('span');
+                interactionTag.className = 'meta-tag';
+                interactionTag.textContent = animation.interaction;
+                meta.appendChild(interactionTag);
+            }
+            
+            info.appendChild(meta);
+            card.appendChild(info);
+            
+            // Add button
+            const addButton = document.createElement('button');
+            addButton.className = 'add-button';
+            addButton.textContent = 'Add to Figma';
+            addButton.onclick = (e) => {
+                e.stopPropagation();
+                addToFigma(animation);
+            };
+            
+            card.appendChild(addButton);
+            
+            // Add card click handler
+            card.onclick = () => openPreview(animation);
+            
+            return card;
+        }
+        
+        // Play all videos
+        function playAllVideos() {
+            console.log("Playing all videos");
+            
+            const videos = document.querySelectorAll('video');
+            videos.forEach(video => {
+                try {
+                    video.play().catch(err => {
+                        console.warn("Autoplay failed:", err);
+                    });
+                } catch (e) {
+                    console.error("Error playing video:", e);
+                }
+            });
+        }
+        
+        // Add animation to Figma
+        function addToFigma(animation) {
+            console.log("Adding to Figma:", animation);
+            
+            // Send message to plugin code
+            parent.postMessage({
+                pluginMessage: {
+                    type: 'add-animation',
+                    animation: animation
+                }
+            }, '*');
+        }
+        
+        // Open preview modal
+        function openPreview(animation) {
+            const modal = document.getElementById('preview-modal');
+            
+            // Set title and meta
+            document.getElementById('preview-title').textContent = animation.title;
+            
+            const previewMeta = document.getElementById('preview-meta');
+            previewMeta.innerHTML = '';
+            
+            if (animation.platform) {
+                const platformTag = document.createElement('span');
+                platformTag.className = 'meta-tag';
+                platformTag.textContent = animation.platform;
+                previewMeta.appendChild(platformTag);
+            }
+            
+            if (animation.interaction) {
+                const interactionTag = document.createElement('span');
+                interactionTag.className = 'meta-tag';
+                interactionTag.textContent = animation.interaction;
+                previewMeta.appendChild(interactionTag);
+            }
+            
+            // Set video
+            const videoWrapper = modal.querySelector('.video-wrapper');
+            videoWrapper.innerHTML = '';
+            
+            const video = document.createElement('video');
+            video.style.width = '100%';
+            video.style.maxHeight = '400px';
+            video.controls = true;
+            video.muted = true;
+            video.autoplay = true;
+            video.loop = true;
+            video.playsInline = true;
+            video.src = animation.video_url;
+            
+            videoWrapper.appendChild(video);
+            
+            // Set add button action
+            document.getElementById('preview-add').onclick = () => {
+                addToFigma(animation);
+                closePreview();
+            };
+            
+            // Set close button action
+            document.getElementById('preview-close').onclick = closePreview;
+            
+            // Add click outside to close
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    closePreview();
+                }
+            };
+            
+            // Show modal
+            modal.style.display = 'flex';
+            
+            // Play video
+            video.play().catch(err => console.warn("Preview video autoplay failed:", err));
+        }
+        
+        // Close preview modal
+        function closePreview() {
+            const modal = document.getElementById('preview-modal');
+            
+            // Stop any videos
+            const videos = modal.querySelectorAll('video');
+            videos.forEach(video => {
+                try {
+                    video.pause();
+                } catch (e) {
+                    console.error("Error stopping video:", e);
+                }
+            });
+            
+            // Hide modal
+            modal.style.display = 'none';
+        }
+        
+        // Set up event handlers
+        function setupEventHandlers() {
+            // Set up search
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', debounce(handleSearch, 300));
+            }
+            
+            // Set up close button
+            const closeBtn = document.getElementById('close-btn');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    parent.postMessage({ pluginMessage: { type: 'cancel' } }, '*');
+                });
+            }
+            
+            // Add ESC key handler
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closePreview();
+                }
+            });
+        }
+        
+        // Handle search
+        function handleSearch() {
+            const searchInput = document.getElementById('search-input');
+            const query = searchInput.value.toLowerCase();
+            
+            // Filter animations
+            const filtered = allAnimations.filter(animation => {
+                return animation.title.toLowerCase().includes(query) ||
+                    (animation.platform && animation.platform.toLowerCase().includes(query)) ||
+                    (animation.interaction && animation.interaction.toLowerCase().includes(query));
+            });
+            
+            // Update grid
+            createAnimationGrid(filtered);
+        }
+        
+        // Check and fix animations if needed
+        function checkAndFixAnimations() {
+            const container = document.getElementById('animations-container');
+            
+            // If container still shows loading message, force load animations
+            if (container.innerHTML.includes('Loading')) {
+                console.log("Animation container still loading, forcing emergency load");
+                const fallbackAnimations = getGuaranteedAnimations();
+                createAnimationGrid(fallbackAnimations);
+            }
+        }
+        
+        // Get guaranteed animations
+        function getGuaranteedAnimations() {
+            console.log("Loading guaranteed animations");
+            
+            // Store animations globally
+            allAnimations = [
+                {
+                    id: 'guaranteed-1',
+                    title: 'Button Animation',
+                    platform: 'iOS',
+                    interaction: 'Button',
+                    url: 'https://ripplix.com/animations/button',
+                    video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+                },
+                {
+                    id: 'guaranteed-2',
+                    title: 'Card Swipe Animation',
+                    platform: 'Android',
+                    interaction: 'Swipe',
+                    url: 'https://ripplix.com/animations/swipe',
+                    video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+                },
+                {
+                    id: 'guaranteed-3',
+                    title: 'Menu Animation',
+                    platform: 'Web',
+                    interaction: 'Menu',
+                    url: 'https://ripplix.com/animations/menu',
+                    video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+                },
+                {
+                    id: 'guaranteed-4',
+                    title: 'Toggle Animation',
+                    platform: 'Web',
+                    interaction: 'Toggle',
+                    url: 'https://ripplix.com/animations/toggle',
+                    video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
+                },
+                {
+                    id: 'guaranteed-5',
+                    title: 'Loader Animation',
+                    platform: 'iOS',
+                    interaction: 'Loading',
+                    url: 'https://ripplix.com/animations/loader',
+                    video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
+                },
+                {
+                    id: 'guaranteed-6',
+                    title: 'Onboarding Animation',
+                    platform: 'Android',
+                    interaction: 'Onboarding',
+                    url: 'https://ripplix.com/animations/onboarding',
+                    video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4'
+                }
+            ];
+            
+            return allAnimations;
+        }
+        
+        // Unlock autoplay
+        function unlockAutoplay() {
+            try {
+                // Create silent audio
+                const audio = document.createElement('audio');
+                audio.setAttribute('playsinline', '');
+                audio.setAttribute('muted', '');
+                audio.setAttribute('autoplay', '');
+                audio.muted = true;
+                audio.volume = 0;
+                audio.style.height = '1px';
+                audio.style.width = '1px';
+                audio.style.position = 'absolute';
+                audio.style.opacity = '0.01';
+                document.body.appendChild(audio);
+                
+                // Try to play it
+                audio.play()
+                    interaction: 'Loading',
+                    video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
+                    thumbnail_url: '',
+                    color: '#ff9800'
+                }
+            ];
+        }
+
+        // Initialize the app
+        initApp();
+
+        // Set a fallback to ensure animations load even if initApp fails
+        setTimeout(function checkAndFixAnimations() {
+            console.log("Checking if animations loaded correctly...");
+            
+            const container = document.getElementById('animations-container');
+            if (!container) return; // No container, can't check
+            
+            // If we still see the loading message after 3 seconds, something's wrong
+            if (container.innerHTML.includes('Loading animations')) {
+                console.log("Still showing loading message after 3 seconds - forcing emergency load");
+                
+                // Force load animations
+                // This is a simple backup approach that creates a basic grid with guaranteed working videos
+                container.innerHTML = '';
+                
+                // Create grid manually
+                const grid = document.createElement('div');
+                grid.className = 'animation-grid';
+                grid.style.display = 'grid';
+                grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(250px, 1fr))';
+                grid.style.gap = '16px';
+                grid.style.padding = '16px';
+                
+                // Add a few guaranteed working videos
+                const videos = [
+                    {
+                        title: 'Button Animation',
+                        platform: 'iOS',
+                        interaction: 'Button',
+                        url: 'https://ripplix.com/animations/button',
+                        video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+                    },
+                    {
+                        title: 'Card Swipe Animation',
+                        platform: 'Android',
+                        interaction: 'Swipe',
+                        url: 'https://ripplix.com/animations/swipe',
+                        video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+                    },
+                    {
+                        title: 'Menu Animation',
+                        platform: 'Web',
+                        interaction: 'Menu',
+                        url: 'https://ripplix.com/animations/menu',
+                        video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+                    }
+                ];
+                
+                videos.forEach(video => {
+                    const card = document.createElement('div');
+                    card.style.border = '1px solid #e0e0e0';
+                    card.style.borderRadius = '8px';
+                    card.style.overflow = 'hidden';
+                    card.style.display = 'flex';
+                    card.style.flexDirection = 'column';
+                    
+                    // Add video
+                    const videoContainer = document.createElement('div');
+                    videoContainer.style.position = 'relative';
+                    videoContainer.style.paddingTop = '56.25%'; // 16:9 aspect ratio
+                    
+                    const videoElement = document.createElement('video');
+                    videoElement.muted = true;
+                    videoElement.loop = true;
+                    videoElement.autoplay = true;
+                    videoElement.playsInline = true;
+                    videoElement.setAttribute('muted', '');
+                    videoElement.setAttribute('loop', '');
+                    videoElement.setAttribute('autoplay', '');
+                    videoElement.setAttribute('playsinline', '');
+                    videoElement.src = video.video_url;
+                    videoElement.style.position = 'absolute';
+                    videoElement.style.top = '0';
+                    videoElement.style.left = '0';
+                    videoElement.style.width = '100%';
+                    videoElement.style.height = '100%';
+                    videoElement.style.objectFit = 'cover';
+                    
+                    // Make sure to play video
+                    try {
+                        videoElement.play().catch(err => console.warn("Video autoplay failed:", err));
+                    } catch (e) {
+                        console.error("Error playing video:", e);
+                    }
+                    
+                    videoContainer.appendChild(videoElement);
+                    card.appendChild(videoContainer);
+                    
+                    // Add info
+                    const info = document.createElement('div');
+                    info.style.padding = '12px';
+                    
+                    const title = document.createElement('h3');
+                    title.textContent = video.title;
+                    title.style.margin = '0 0 8px 0';
+                    title.style.fontSize = '16px';
+                    
+                    const tags = document.createElement('div');
+                    tags.style.display = 'flex';
+                    tags.style.gap = '8px';
+                    
+                    const platformTag = document.createElement('span');
+                    platformTag.textContent = video.platform;
+                    platformTag.style.backgroundColor = '#f0f0f0';
+                    platformTag.style.padding = '2px 6px';
+                    platformTag.style.borderRadius = '4px';
+                    platformTag.style.fontSize = '12px';
+                    
+                    const interactionTag = document.createElement('span');
+                    interactionTag.textContent = video.interaction;
+                    interactionTag.style.backgroundColor = '#f0f0f0';
+                    interactionTag.style.padding = '2px 6px';
+                    interactionTag.style.borderRadius = '4px';
+                    interactionTag.style.fontSize = '12px';
+                    
+                    tags.appendChild(platformTag);
+                    tags.appendChild(interactionTag);
+                    
+                    info.appendChild(title);
+                    info.appendChild(tags);
+                    card.appendChild(info);
+                    
+                    // Add button
+                    const button = document.createElement('button');
+                    button.textContent = 'Add to Figma';
+                    button.style.backgroundColor = '#0d99ff';
+                    button.style.color = 'white';
+                    button.style.border = 'none';
+                    button.style.padding = '8px 12px';
+                    button.style.cursor = 'pointer';
+                    button.onclick = function() {
+                        parent.postMessage({
+                            pluginMessage: {
+                                type: 'add-animation',
+                                animation: video
+                            }
+                        }, '*');
+                    };
+                    
+                    card.appendChild(button);
+                    grid.appendChild(card);
+                });
+                
+                container.appendChild(grid);
+                console.log("Emergency animation grid created with 3 videos");
+            } else {
+                console.log("Animations appear to be loaded correctly");
+            }
+        }, 3000);
+    </script>
+</body>
+
+</html>

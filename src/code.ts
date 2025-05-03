@@ -1,66 +1,223 @@
-// This plugin creates a Figma logo with a hyperlink
-figma.showUI(__html__, { width: 320, height: 320 });
+// This plugin will allow users to browse and add Ripplix animations to Figma designs
+// The plugin provides functionality to view animations and add them as links
 
-// Function to create a Figma logo placeholder
-async function createFigmaLogo(animationUrl: string) {
-  // Create an SVG node
-  const logo = figma.createNodeFromSvg('<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 16C16 13.7909 17.7909 12 20 12C22.2091 12 24 13.7909 24 16C24 18.2091 22.2091 20 20 20C17.7909 20 16 18.2091 16 16Z" fill="#1ABCFE"/><path d="M8 24C8 21.7909 9.79086 20 12 20H16V24C16 26.2091 14.2091 28 12 28C9.79086 28 8 26.2091 8 24Z" fill="#0ACF83"/><path d="M16 4V12H20C22.2091 12 24 10.2091 24 8C24 5.79086 22.2091 4 20 4H16Z" fill="#FF7262"/><path d="M8 8C8 10.2091 9.79086 12 12 12H16V4H12C9.79086 4 8 5.79086 8 8Z" fill="#F24E1E"/><path d="M8 16C8 18.2091 9.79086 20 12 20H16V12H12C9.79086 12 8 13.7909 8 16Z" fill="#A259FF"/></svg>');
+// Check which command was used to start the plugin
+if (figma.command === 'copy-url') {
+  // Handle the copy URL command
+  const selection = figma.currentPage.selection;
   
-  // Set hyperlink
-  logo.setRelaunchData({ url: animationUrl });
-  
-  return logo;
+  // Check if something is selected
+  if (selection.length === 0) {
+    figma.notify('Please select a Ripplix animation node first');
+    figma.closePlugin();
+    // Exit early
+  } else {
+    const selectedNode = selection[0];
+    // Check if this node has animation URL data
+    const animationUrl = selectedNode.getPluginData('animationUrl');
+    
+    if (animationUrl) {
+      // Copy the URL to clipboard
+      figma.ui.postMessage({ 
+        type: 'copy-to-clipboard', 
+        text: animationUrl 
+      });
+      
+      // Show a mini UI to confirm URL copy
+      figma.showUI(__html__, { visible: true, width: 300, height: 100 });
+      figma.ui.postMessage({ 
+        type: 'show-copy-message',
+        url: animationUrl
+      });
+      
+      // Will be closed by the UI once copy is confirmed
+    } else {
+      figma.notify('This is not a Ripplix animation node');
+      figma.closePlugin();
+    }
+  }
+} else {
+  // Default behavior: show the main UI with animation library
+  figma.showUI(__html__, { width: 500, height: 600 });
 }
 
 // Handle messages from the UI
-figma.ui.onmessage = async msg => {
-  if (msg.type === 'create-figma-logo') {
-    const animationUrl = msg.animationUrl || 'https://www.ripplix.com/animation/example';
-
-    // Create the Figma logo with hyperlink
-    const logo = await createFigmaLogo(animationUrl);
-    
-    // Add to current page
-    figma.currentPage.appendChild(logo);
-    
-    // Create a text label
-    const label = figma.createText();
-    // Load the font before setting characters
+figma.ui.onmessage = async (msg) => {
+  if (msg.type === 'add-animation') {
     try {
-      await figma.loadFontAsync({ family: "Inter", style: "Regular" });
-      label.characters = "View on Ripplix";
-      label.fontSize = 12;
-      label.x = logo.x + logo.width + 8;
-      label.y = logo.y + (logo.height / 2) - 6;
-      label.fills = [{ type: 'SOLID', color: { r: 0.1, g: 0.1, b: 0.1 } }];
+      const animation = msg.animation;
       
-      // Add the text to the page
-      figma.currentPage.appendChild(label);
+      // Try to create SVG first - fallback to text ONLY if this completely fails
+      let svgSuccess = false;
       
-      // Group the elements
-      const group = figma.group([logo, label], figma.currentPage);
+      try {
+        // Get the SVG URL from animation data or use default fallback
+        const logoUrl = animation.logo || "https://www.ripplix.com/wp-content/uploads/2025/04/Logo-figma.svg";
+        console.log("Using logo URL:", logoUrl);
+        
+        // Fetch the SVG content
+        let svgString = '';
+        const response = await fetch(logoUrl);
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch SVG: ${response.status}`);
+        }
+        
+        svgString = await response.text();
+        
+        // Ensure the SVG has proper namespace
+        if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
+          svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
+        }
+        
+        // Create the vector nodes from SVG
+        const svgNode = figma.createNodeFromSvg(svgString);
+        console.log("Created SVG node type:", svgNode.type);
+        
+        if (!svgNode) {
+          throw new Error("Failed to create SVG node");
+        }
+        
+        // Create a frame to contain the SVG with proper layout settings
+        const container = figma.createFrame();
+        container.layoutMode = "NONE";
+        container.name = `Ripplix: ${animation.title || 'Animation'}`;
+        container.fills = []; // Transparent background
+        
+        // Resize frame to fit SVG with small padding
+        const padding = 4;
+        container.resize(
+          svgNode.width + padding * 2,
+          svgNode.height + padding * 2
+        );
+        
+        // Center the SVG in the frame
+        svgNode.x = padding;
+        svgNode.y = padding;
+        
+        // Add the SVG to the container
+        container.appendChild(svgNode);
+        
+        // Position at the center of the viewport
+        const center = figma.viewport.center;
+        container.x = center.x - container.width / 2;
+        container.y = center.y - container.height / 2;
+        
+        // Apply hyperlink to the container using the newer API first
+        try {
+          // @ts-ignore - Using newer Figma API
+          container.hyperlink = { type: "URL", value: animation.url };
+        } catch (hyperlinkError) {
+          console.log("Hyperlink API not supported, using relaunchData instead:", hyperlinkError);
+          container.setRelaunchData({ open: animation.url });
+        }
+        
+        // Store the animation metadata
+        container.setPluginData('animationUrl', animation.url);
+        container.setPluginData('animationTitle', animation.title || '');
+        
+        // Add to current page
+        figma.currentPage.appendChild(container);
+        
+        // Select the created node and focus viewport on it
+        figma.currentPage.selection = [container];
+        figma.viewport.scrollAndZoomIntoView([container]);
+        
+        // Mark that SVG creation was successful
+        svgSuccess = true;
+        
+        // Notify UI
+        figma.ui.postMessage({ 
+          type: 'animation-added', 
+          success: true,
+          message: "Animation link added! Right-click to access the URL."
+        });
+        
+      } catch (svgError) {
+        // Log the SVG error for debugging
+        console.error('SVG creation failed, will fall back to text:', svgError);
+      }
       
-      // Select the group
-      figma.currentPage.selection = [group];
+      // ONLY create text if SVG creation completely failed
+      if (!svgSuccess) {
+        console.log("Using text fallback since SVG creation failed");
+        
+        // Fallback: Create a simple colored rectangle with the hyperlink
+        // First, load the necessary fonts
+        await figma.loadFontAsync({ family: "Inter", style: "Bold" });
+        await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+        
+        // Create a container frame
+        const frame = figma.createFrame();
+        frame.resize(32, 32);
+        frame.cornerRadius = 8;
+        
+        // Position at center of viewport
+        const center = figma.viewport.center;
+        frame.x = center.x - frame.width / 2;
+        frame.y = center.y - frame.height / 2;
+        
+        // Style the frame with Figma colors
+        frame.fills = [{
+          type: 'SOLID',
+          color: { r: 0.1, g: 0.04, b: 0.36 } // Figma purple
+        }];
+        
+        // Add the text "F" as a fallback for the Figma logo
+        const logoText = figma.createText();
+        logoText.fontName = { family: "Inter", style: "Bold" };
+        logoText.fontSize = 16;
+        logoText.characters = "F";
+        logoText.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
+        
+        // Center the text in the frame
+        logoText.x = (frame.width - logoText.width) / 2;
+        logoText.y = (frame.height - logoText.height) / 2;
+        
+        // Add text to the frame
+        frame.appendChild(logoText);
+        
+        // Apply hyperlink
+        try {
+          // @ts-ignore - Using newer Figma API
+          frame.hyperlink = { type: "URL", value: animation.url };
+        } catch (hyperlinkError) {
+          console.log("Hyperlink API not supported, using relaunchData instead");
+          frame.setRelaunchData({ open: animation.url });
+        }
+        
+        // Store the animation data
+        frame.setPluginData('animationUrl', animation.url);
+        frame.setPluginData('animationTitle', animation.title || '');
+        
+        // Add to current page
+        figma.currentPage.appendChild(frame);
+        figma.currentPage.selection = [frame];
+        figma.viewport.scrollAndZoomIntoView([frame]);
+        
+        // Notify UI
+        figma.ui.postMessage({ 
+          type: 'animation-added', 
+          success: true,
+          message: "Animation link added (fallback mode)! Right-click to access the URL."
+        });
+      }
       
-      // Zoom to it
-      figma.viewport.scrollAndZoomIntoView([group]);
-    } catch (error) {
-      // If font loading fails, just use the logo without the text
-      console.error("Font loading failed:", error);
+    } catch (error: unknown) {
+      console.error('Error adding animation:', error);
       
-      // Select just the logo
-      figma.currentPage.selection = [logo];
-      
-      // Zoom to it
-      figma.viewport.scrollAndZoomIntoView([logo]);
+      // Notify the UI of the error
+      figma.ui.postMessage({ 
+        type: 'animation-added', 
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
     }
-    
-    // Notify the UI
-    figma.ui.postMessage({ type: 'creation-success' });
-  }
-  
-  if (msg.type === 'close-plugin') {
+  } else if (msg.type === 'copy-confirmed') {
+    // Close the plugin once the UI confirms copy is complete
+    figma.closePlugin('URL copied to clipboard');
+  } else if (msg.type === 'close-plugin') {
+    // Close the plugin when UI requests it
     figma.closePlugin();
   }
 }; 
