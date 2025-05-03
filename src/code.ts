@@ -1,127 +1,66 @@
-// This plugin will allow users to browse and add Ripplix animations to Figma designs
-// The plugin provides functionality to view animations and add them as links
+// This plugin creates a Figma logo with a hyperlink
+figma.showUI(__html__, { width: 320, height: 320 });
 
-// Check which command was used to start the plugin
-if (figma.command === 'copy-url') {
-  // Handle the copy URL command
-  const selection = figma.currentPage.selection;
+// Function to create a Figma logo placeholder
+async function createFigmaLogo(animationUrl: string) {
+  // Create an SVG node
+  const logo = figma.createNodeFromSvg('<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 16C16 13.7909 17.7909 12 20 12C22.2091 12 24 13.7909 24 16C24 18.2091 22.2091 20 20 20C17.7909 20 16 18.2091 16 16Z" fill="#1ABCFE"/><path d="M8 24C8 21.7909 9.79086 20 12 20H16V24C16 26.2091 14.2091 28 12 28C9.79086 28 8 26.2091 8 24Z" fill="#0ACF83"/><path d="M16 4V12H20C22.2091 12 24 10.2091 24 8C24 5.79086 22.2091 4 20 4H16Z" fill="#FF7262"/><path d="M8 8C8 10.2091 9.79086 12 12 12H16V4H12C9.79086 4 8 5.79086 8 8Z" fill="#F24E1E"/><path d="M8 16C8 18.2091 9.79086 20 12 20H16V12H12C9.79086 12 8 13.7909 8 16Z" fill="#A259FF"/></svg>');
   
-  // Check if something is selected
-  if (selection.length === 0) {
-    figma.notify('Please select a Ripplix animation node first');
-    figma.closePlugin();
-    // Exit early
-  } else {
-    const selectedNode = selection[0];
-    // Check if this node has animation URL data
-    const animationUrl = selectedNode.getPluginData('animationUrl');
-    
-    if (animationUrl) {
-      // Copy the URL to clipboard
-      figma.ui.postMessage({ 
-        type: 'copy-to-clipboard', 
-        text: animationUrl 
-      });
-      
-      // Show a mini UI to confirm URL copy
-      figma.showUI(__html__, { visible: true, width: 300, height: 100 });
-      figma.ui.postMessage({ 
-        type: 'show-copy-message',
-        url: animationUrl
-      });
-      
-      // Will be closed by the UI once copy is confirmed
-    } else {
-      figma.notify('This is not a Ripplix animation node');
-      figma.closePlugin();
-    }
-  }
-} else {
-  // Default behavior: show the main UI with animation library
-  figma.showUI(__html__, { width: 500, height: 600 });
+  // Set hyperlink
+  logo.setRelaunchData({ url: animationUrl });
+  
+  return logo;
 }
 
 // Handle messages from the UI
-figma.ui.onmessage = async (msg) => {
-  if (msg.type === 'add-animation') {
+figma.ui.onmessage = async msg => {
+  if (msg.type === 'create-figma-logo') {
+    const animationUrl = msg.animationUrl || 'https://www.ripplix.com/animation/example';
+
+    // Create the Figma logo with hyperlink
+    const logo = await createFigmaLogo(animationUrl);
+    
+    // Add to current page
+    figma.currentPage.appendChild(logo);
+    
+    // Create a text label
+    const label = figma.createText();
+    // Load the font before setting characters
     try {
-      const animation = msg.animation;
-      
-      // First, load the necessary fonts
-      await figma.loadFontAsync({ family: "Inter", style: "Bold" });
       await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+      label.characters = "View on Ripplix";
+      label.fontSize = 12;
+      label.x = logo.x + logo.width + 8;
+      label.y = logo.y + (logo.height / 2) - 6;
+      label.fills = [{ type: 'SOLID', color: { r: 0.1, g: 0.1, b: 0.1 } }];
       
-      // Create a container frame
-      const frame = figma.createFrame();
-      frame.resize(220, 60);
-      frame.cornerRadius = 8;
+      // Add the text to the page
+      figma.currentPage.appendChild(label);
       
-      // Position at center of viewport
-      const center = figma.viewport.center;
-      frame.x = center.x - frame.width / 2;
-      frame.y = center.y - frame.height / 2;
+      // Group the elements
+      const group = figma.group([logo, label], figma.currentPage);
       
-      // Style the frame
-      frame.fills = [{
-        type: 'SOLID',
-        color: { r: 0.05, g: 0.6, b: 1.0 } // Ripplix blue
-      }];
+      // Select the group
+      figma.currentPage.selection = [group];
       
-      // Create a title text node
-      const titleText = figma.createText();
-      titleText.fontName = { family: "Inter", style: "Bold" };
-      titleText.fontSize = 16;
-      titleText.characters = "Ripplix Animation";
-      titleText.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
-      titleText.x = 12;
-      titleText.y = 10;
+      // Zoom to it
+      figma.viewport.scrollAndZoomIntoView([group]);
+    } catch (error) {
+      // If font loading fails, just use the logo without the text
+      console.error("Font loading failed:", error);
       
-      // Create a description text
-      const descText = figma.createText();
-      descText.fontName = { family: "Inter", style: "Regular" };
-      descText.fontSize = 12;
-      descText.characters = animation.title;
-      descText.fills = [{ 
-        type: 'SOLID', 
-        color: { r: 1, g: 1, b: 1 },
-        opacity: 0.8 
-      }];
-      descText.x = 12;
-      descText.y = 32;
+      // Select just the logo
+      figma.currentPage.selection = [logo];
       
-      // Add nodes to the frame
-      frame.appendChild(titleText);
-      frame.appendChild(descText);
-      
-      // Store the animation data
-      frame.setPluginData('animationUrl', animation.url);
-      frame.setPluginData('animationTitle', animation.title);
-      
-      // Select the created frame
-      figma.currentPage.selection = [frame];
-      
-      // Notify the UI
-      figma.ui.postMessage({ 
-        type: 'animation-added', 
-        success: true,
-        message: "Animation added! Right-click and use Plugins > Ripplix Animation Library > Copy Animation URL to copy the link."
-      });
-      
-    } catch (error: unknown) {
-      console.error('Error adding animation:', error);
-      
-      // Notify the UI of the error
-      figma.ui.postMessage({ 
-        type: 'animation-added', 
-        success: false,
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      // Zoom to it
+      figma.viewport.scrollAndZoomIntoView([logo]);
     }
-  } else if (msg.type === 'copy-confirmed') {
-    // Close the plugin once the UI confirms copy is complete
-    figma.closePlugin('URL copied to clipboard');
-  } else if (msg.type === 'close-plugin') {
-    // Close the plugin when UI requests it
+    
+    // Notify the UI
+    figma.ui.postMessage({ type: 'creation-success' });
+  }
+  
+  if (msg.type === 'close-plugin') {
     figma.closePlugin();
   }
 }; 
