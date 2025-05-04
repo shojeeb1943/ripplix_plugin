@@ -547,7 +547,7 @@
         .filter-tag.active {
             background-color: #FFFFFF !important;
             /* Darker purple for active state */
-            /* color: white; */
+            color: #2B1269;
             /* White text for better contrast */
             border-color: #EBEBEB !important;
             border-radius: 10px;
@@ -883,6 +883,15 @@
                 color: var(--dropdown-hover-text) !important;
                 box-shadow: 0 0 10px 100px var(--dropdown-hover-bg) inset !important;
             }
+        }
+        
+        .no-results {
+            margin: 40px auto;
+            /* Center horizontally with auto margins */
+            max-width: 450px;
+            /* Limit width for better appearance */
+            width: 100%;
+            /* Take full width up to max-width */
         }
     </style>
 </head>
@@ -1906,7 +1915,15 @@
                 console.warn("No animations to display");
                 const noResults = document.createElement('div');
                 noResults.className = 'no-results';
-                noResults.textContent = 'No animations found. Try adjusting your filters.';
+                noResults.innerHTML = `
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 20px; border-radius: 12px; background-color: #FAFAFA;">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15.5 14.5L19 18M10.5 18C6.36 18 3 14.64 3 10.5C3 6.36 6.36 3 10.5 3C14.64 3 18 6.36 18 10.5C18 12.6075 17.1277 14.5163 15.7663 15.9246C14.4371 17.3006 12.5661 18 10.5 18Z" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <p style="margin-top: 20px; font-size: 16px; color: #333; font-weight: 500;">No animations found.</p>
+                        <p style="font-size: 14px; color: #888;">Try adjusting your filters.</p>
+                    </div>
+                `;
                 container.appendChild(noResults);
                 return;
             }
@@ -3058,12 +3075,12 @@
                     const noResults = document.createElement('div');
                     noResults.className = 'no-results';
                     noResults.innerHTML = `
-                        <div style="margin: 40px 0; text-align: center;">
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 20px; border-radius: 12px; background-color: #FAFAFA;">
                             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M15.5 14.5L19 18M10.5 18C6.36 18 3 14.64 3 10.5C3 6.36 6.36 3 10.5 3C14.64 3 18 6.36 18 10.5C18 12.6075 17.1277 14.5163 15.7663 15.9246C14.4371 17.3006 12.5661 18 10.5 18Z" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-                            <p style="margin-top: 16px; color: var(--text-color);">No animations match your search.</p>
-                            <p style="color: var(--light-text);">Try different filters or search terms.</p>
+                            <p style="margin-top: 20px; font-size: 16px; color: #333; font-weight: 500;">No animations match your search.</p>
+                            <p style="font-size: 14px; color: #888;">Try different filters or search terms.</p>
                         </div>
                     `;
                     grid.appendChild(noResults);
@@ -3419,7 +3436,17 @@
                 const grid = document.getElementById('animation-grid');
                 if (grid && grid.children.length === 0) {
                     console.warn("Grid is empty after loading!");
-                    grid.innerHTML = '<div class="no-results">No animations loaded. Please try refreshing.</div>';
+                    grid.innerHTML = `
+                        <div class="no-results">
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 20px; border-radius: 12px; background-color: #FAFAFA;">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M15.5 14.5L19 18M10.5 18C6.36 18 3 14.64 3 10.5C3 6.36 6.36 3 10.5 3C14.64 3 18 6.36 18 10.5C18 12.6075 17.1277 14.5163 15.7663 15.9246C14.4371 17.3006 12.5661 18 10.5 18Z" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                                <p style="margin-top: 20px; font-size: 16px; color: #333; font-weight: 500;">No animations loaded.</p>
+                                <p style="font-size: 14px; color: #888;">Please try refreshing.</p>
+                            </div>
+                        </div>
+                    `;
                 }
             }
         }
@@ -3579,7 +3606,17 @@
                 }
             } else {
                 // Show no results message
-                grid.innerHTML = '<div class="no-results">No animations match your search. Try different filters or search terms.</div>';
+                grid.innerHTML = `
+                    <div class="no-results">
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 60px 20px; border-radius: 12px; background-color: #FAFAFA;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M15.5 14.5L19 18M10.5 18C6.36 18 3 14.64 3 10.5C3 6.36 6.36 3 10.5 3C14.64 3 18 6.36 18 10.5C18 12.6075 17.1277 14.5163 15.7663 15.9246C14.4371 17.3006 12.5661 18 10.5 18Z" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <p style="margin-top: 20px; font-size: 16px; color: #333; font-weight: 500;">No animations match your search.</p>
+                            <p style="font-size: 14px; color: #888;">Try different filters or search terms.</p>
+                        </div>
+                    </div>
+                `;
 
                 // Hide load more sentinel
                 const sentinel = document.getElementById('load-more-sentinel');
