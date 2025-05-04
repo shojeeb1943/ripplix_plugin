@@ -30,6 +30,19 @@
             --loading-bg: #100F19;
             --loading-accent: #694EE4;
             --loading-secondary: #1F1C37;
+            --primary-color: #1A66E5;
+            --secondary-color: #3B82F6;
+            --background-color: #F8F8F9;
+            --card-background: #FFFFFF;
+            --text-color: #333333;
+            --light-text: #666666;
+            --border-color: #E5E7EB;
+            --hover-color: #F3F4F6;
+            --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --card-radius: 8px;
+            --transition-speed: 0.2s;
+            --dropdown-hover-bg: #F2EDFF;
+            --dropdown-hover-text: #3F2B87;
         }
         /* Modern fullscreen loading overlay */
         
@@ -396,6 +409,25 @@
             cursor: pointer;
             color: #333;
         }
+        /* Styling for dropdown options */
+        
+        .platform-select option:hover,
+        .platform-select option:focus {
+            background-color: var(--dropdown-hover-bg) !important;
+            color: var(--dropdown-hover-text) !important;
+        }
+        /* Remove selection highlight */
+        
+        .platform-select option:checked {
+            background-color: transparent !important;
+            color: inherit !important;
+        }
+        /* When hovering on a checked option, still show the hover color */
+        
+        .platform-select option:checked:hover {
+            background-color: var(--dropdown-hover-bg) !important;
+            color: var(--dropdown-hover-text) !important;
+        }
         
         .dropdown-icon {
             position: absolute;
@@ -410,26 +442,97 @@
         
         .filters {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
             gap: 12px;
+            overflow-x: auto;
+            /* Changed back to auto to enable scrolling */
+            -ms-overflow-style: none;
+            /* Hide scrollbar in IE/Edge */
+            scrollbar-width: none;
+            /* Hide scrollbar in Firefox */
+            padding: 8px 0;
+            width: 100%;
+            position: relative;
+            scroll-behavior: smooth;
+        }
+        /* Hide scrollbar in WebKit browsers */
+        
+        .filters::-webkit-scrollbar {
+            display: none;
+        }
+        /* Remove scrollbar styling since it's now hidden */
+        /* Add buttons for horizontal scrolling */
+        
+        .filter-scroll-button {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background-color: white;
+            border: 1px solid #E5E7EB;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+        
+        .filter-scroll-button:hover {
+            background-color: #F2EDFF;
+            color: #3F2B87;
+        }
+        
+        .filter-scroll-left {
+            left: 0;
+        }
+        
+        .filter-scroll-right {
+            right: 0;
+        }
+        /* Remove the fade indicator since we now have buttons */
+        
+        .filters::after {
+            display: none;
+        }
+        /* Filter container to hold both the buttons and filters */
+        
+        .filters-container {
+            position: relative;
+            width: 100%;
+            padding: 0 30px;
+            /* Add padding to make room for buttons */
         }
         
         .filter-tag {
             padding: 8px 16px;
-            background-color: #f9f9f9;
-            border: 1px solid #e0e0e0;
+            background-color: #F8F8F9;
+            border: 1px solid #F8F8F9;
             border-radius: 50px;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             color: #333;
+            white-space: nowrap;
+            /* Prevent wrapping of text */
+            flex: 0 0 auto;
+            /* Don't allow the tags to grow or shrink */
+        }
+        
+        .filter-tag:hover {
+            background-color: #F2EDFF;
+            color: #3F2B87;
         }
         
         .filter-tag.active {
-            background-color: #F2EDFF;
-            color: white;
-            border-color: #F2EDFF;
+            background-color: var(--dropdown-hover-bg);
+            color: var(--dropdown-hover-text);
+            border-color: var(--dropdown-hover-bg);
         }
         
         .animation-grid {
@@ -737,6 +840,26 @@
             color: var(--light-text);
             margin-top: 4px;
         }
+        /* Browser-specific styles for options */
+        /* WebKit browsers */
+        
+        @media screen and (-webkit-min-device-pixel-ratio:0) {
+            .platform-select option:hover {
+                background-color: var(--dropdown-hover-bg) !important;
+                color: var(--dropdown-hover-text) !important;
+            }
+        }
+        /* Firefox */
+        
+        @-moz-document url-prefix() {
+            .platform-select option:hover,
+            .platform-select option:focus,
+            .platform-select option:checked {
+                background-color: var(--dropdown-hover-bg) !important;
+                color: var(--dropdown-hover-text) !important;
+                box-shadow: 0 0 10px 100px var(--dropdown-hover-bg) inset !important;
+            }
+        }
     </style>
 </head>
 
@@ -801,13 +924,21 @@
             </div>
         </div>
 
-        <div class="filters" id="filter-container">
-            <span class="filter-tag" data-filter="interaction" data-value="Hover">Hover</span>
-            <span class="filter-tag" data-filter="interaction" data-value="Drop down">Drop down</span>
-            <span class="filter-tag" data-filter="interaction" data-value="Popup">Popup</span>
-            <span class="filter-tag" data-filter="interaction" data-value="Loading">Loading</span>
-            <span class="filter-tag" data-filter="interaction" data-value="Tooltip">Tooltip</span>
-            <span class="filter-tag" data-filter="interaction" data-value="Toggle">Toggle</span>
+        <div class="filters-container">
+            <button class="filter-scroll-button filter-scroll-left" id="scroll-left">
+                &#8249;
+            </button>
+            <div class="filters" id="filter-container">
+                <span class="filter-tag" data-filter="interaction" data-value="Hover">Hover</span>
+                <span class="filter-tag" data-filter="interaction" data-value="Drop down">Drop down</span>
+                <span class="filter-tag" data-filter="interaction" data-value="Popup">Popup</span>
+                <span class="filter-tag" data-filter="interaction" data-value="Loading">Loading</span>
+                <span class="filter-tag" data-filter="interaction" data-value="Tooltip">Tooltip</span>
+                <span class="filter-tag" data-filter="interaction" data-value="Toggle">Toggle</span>
+            </div>
+            <button class="filter-scroll-button filter-scroll-right" id="scroll-right">
+                &#8250;
+            </button>
         </div>
     </div>
 
@@ -1004,6 +1135,12 @@
                 grid.className = 'animation-grid';
                 container.appendChild(grid);
             }
+
+            // Attach event listeners to any initial filter tags
+            setupFilterTagEventListeners();
+
+            // Setup filter scroll buttons
+            setupFilterScrollButtons();
 
             // Add a slight delay to ensure DOM is fully ready
             setTimeout(() => {
@@ -1379,6 +1516,19 @@
 
             console.log("Processing API data with", originalAnimations.length, "animations");
 
+            // Debug: Check interaction formats in the raw data
+            console.log("Interaction format samples:");
+            for (let i = 0; i < Math.min(5, originalAnimations.length); i++) {
+                console.log(`Animation ${i + 1}:`,
+                    originalAnimations[i].id,
+                    "Interaction:",
+                    originalAnimations[i].interaction,
+                    "Type:",
+                    typeof originalAnimations[i].interaction,
+                    "Is Array:",
+                    Array.isArray(originalAnimations[i].interaction));
+            }
+
             // Store the original count for reference
             const originalApiCount = originalAnimations.length;
             console.log("Original animation count from API:", originalApiCount);
@@ -1399,14 +1549,29 @@
                     videoUrl = fixCloudflareUrl(videoUrl);
                 }
 
+                // Standardize interactions to always be an array
+                let interactions = [];
+                if (Array.isArray(animation.interaction)) {
+                    interactions = animation.interaction.filter(i => i && typeof i === 'string');
+                } else if (typeof animation.interaction === 'string' && animation.interaction) {
+                    interactions = [animation.interaction];
+                } else if (typeof animation.interaction === 'object' && animation.interaction !== null) {
+                    // Handle case where interaction might be an object with properties
+                    try {
+                        // Try to get values from the object
+                        const values = Object.values(animation.interaction);
+                        interactions = values.filter(v => v && typeof v === 'string');
+                    } catch (e) {
+                        console.warn("Error processing interaction object:", e);
+                    }
+                }
+
                 // Standardize the animation object format
                 return {
                     id: animation.id.toString(),
                     title: animation.title || 'Untitled Animation',
                     platform: animation.platform || 'Web App',
-                    interaction: Array.isArray(animation.interaction) ?
-                        animation.interaction :
-                        (typeof animation.interaction === 'string' ? [animation.interaction] : []),
+                    interaction: interactions,
                     url: animation.url || '',
                     video_url: videoUrl,
                     product: animation.product || 'Ripplix',
@@ -1455,11 +1620,8 @@
                 }
             }
 
-            // Set up sorting
-            setupSorting();
-
-            // Set up filter UI
-            setupFilters(apiData);
+            // Set up filter UI with API data
+            setupFilters(allAnimations);
         }
 
         // Function to update animation count display
@@ -2086,18 +2248,37 @@
 
         // Get currently visible animations based on pagination and filters
         function getVisibleAnimations() {
+            // Debug log for active filters
+            console.log("Active filters:", JSON.stringify(activeFilters));
+
             // Apply filters first
             const filteredAnimations = allAnimations.filter(animation => {
+                // Debug log for individual animation (limit to avoid flooding console)
+                if (Math.random() < 0.05) { // Only log ~5% of animations for debugging
+                    console.log("Filtering animation:", animation.id, "Platform:", animation.platform, "Interactions:", animation.interaction);
+                }
+
                 // Check if animation matches all active filters
+                // Platform filter
                 const matchesPlatform = !activeFilters.platform || animation.platform === activeFilters.platform;
 
                 // For interaction, check if it's in the array or matches the string
                 let matchesInteraction = true;
                 if (activeFilters.interaction) {
                     if (Array.isArray(animation.interaction)) {
-                        matchesInteraction = animation.interaction.includes(activeFilters.interaction);
+                        // Case-insensitive comparison for better matching
+                        matchesInteraction = animation.interaction.some(interaction => {
+                            if (!interaction) return false;
+                            return interaction.toLowerCase() === activeFilters.interaction.toLowerCase();
+                        });
+                    } else if (typeof animation.interaction === 'string') {
+                        if (!animation.interaction) {
+                            matchesInteraction = false;
+                        } else {
+                            matchesInteraction = animation.interaction.toLowerCase() === activeFilters.interaction.toLowerCase();
+                        }
                     } else {
-                        matchesInteraction = animation.interaction === activeFilters.interaction;
+                        matchesInteraction = false;
                     }
                 }
 
@@ -2110,12 +2291,22 @@
                     animation.title.toLowerCase().includes(query) ||
                     (animation.platform && animation.platform.toLowerCase().includes(query)) ||
                     (Array.isArray(animation.interaction) ?
-                        animation.interaction.some(i => i.toLowerCase().includes(query)) :
+                        animation.interaction.some(i => i && i.toLowerCase().includes(query)) :
                         (animation.interaction && animation.interaction.toLowerCase().includes(query))) ||
                     (animation.description && animation.description.toLowerCase().includes(query));
 
+                // Debug log for potential filter mismatches (helps diagnose issues)
+                if (activeFilters.interaction && !matchesInteraction) {
+                    console.log("Filter mismatch for interaction:", animation.id,
+                        "Looking for:", activeFilters.interaction,
+                        "Has:", Array.isArray(animation.interaction) ? animation.interaction : [animation.interaction]);
+                }
+
                 return matchesPlatform && matchesInteraction && matchesSearch;
             });
+
+            // Log filtered results
+            console.log(`Filtered animations: ${filteredAnimations.length} of ${allAnimations.length} total animations`);
 
             // If the total count of filtered animations is less than total items from API 
             // and we have more pages to load, set hasMoreItems to true
@@ -2635,6 +2826,22 @@
                     // Apply filters
                     applyFilters();
                 });
+
+                // Add hover effect enhancement
+                const options = platformSelect.querySelectorAll('option');
+                options.forEach(option => {
+                    option.addEventListener('mouseover', () => {
+                        option.style.backgroundColor = '#F2EDFF';
+                        option.style.color = '#3F2B87';
+                    });
+
+                    option.addEventListener('mouseout', () => {
+                        if (!option.selected) {
+                            option.style.backgroundColor = '';
+                            option.style.color = '';
+                        }
+                    });
+                });
             }
 
             // Set up close button
@@ -2675,10 +2882,32 @@
 
                         // Update style
                         tag.classList.add('active');
+
+                        // Ensure the clicked tag is visible by scrolling it into view
+                        tag.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'nearest',
+                            inline: 'center'
+                        });
                     }
 
                     // Apply filters
                     applyFilters();
+                });
+
+                // Add hover effect logic
+                tag.addEventListener('mouseover', () => {
+                    if (!tag.classList.contains('active')) {
+                        tag.style.backgroundColor = '#F2EDFF';
+                        tag.style.color = '#3F2B87';
+                    }
+                });
+
+                tag.addEventListener('mouseout', () => {
+                    if (!tag.classList.contains('active')) {
+                        tag.style.backgroundColor = '';
+                        tag.style.color = '';
+                    }
                 });
             });
 
@@ -3282,6 +3511,248 @@
 
             // Initial check after content is loaded
             setTimeout(checkScrollPosition, 500);
+        }
+
+        // Set up filter UI based on API data
+        function setupFilters(animations) {
+            console.log("Setting up filters based on animations data");
+
+            // Extract unique interaction types from all animations
+            const interactionTypes = extractUniqueInteractions(animations);
+            console.log("Unique interaction types:", interactionTypes);
+
+            // Update filter tags with these interaction types
+            updateInteractionFilterTags(interactionTypes);
+
+            // Also extract platforms for the dropdown
+            const platforms = extractUniquePlatforms(animations);
+            console.log("Unique platforms:", platforms);
+
+            // Update platform dropdown
+            updatePlatformDropdown(platforms);
+        }
+
+        // Update platform dropdown with API data
+        function updatePlatformDropdown(platforms) {
+            const platformSelect = document.getElementById('platform-select');
+            if (!platformSelect) return;
+
+            // Clear existing options except the first "All" option
+            while (platformSelect.options.length > 1) {
+                platformSelect.remove(1);
+            }
+
+            // Add new platform options
+            platforms.forEach(platform => {
+                const option = document.createElement('option');
+                option.value = platform;
+                option.textContent = platform;
+                platformSelect.appendChild(option);
+            });
+        }
+
+        // Extract unique interaction types from animations
+        function extractUniqueInteractions(animations) {
+            const interactionSet = new Set();
+
+            animations.forEach(animation => {
+                if (Array.isArray(animation.interaction)) {
+                    animation.interaction.forEach(interaction => {
+                        if (interaction && typeof interaction === 'string' && interaction.trim()) {
+                            interactionSet.add(interaction.trim());
+                        }
+                    });
+                } else if (animation.interaction && typeof animation.interaction === 'string' && animation.interaction.trim()) {
+                    interactionSet.add(animation.interaction.trim());
+                }
+            });
+
+            // Convert set to array and sort alphabetically
+            return Array.from(interactionSet).sort();
+        }
+
+        // Extract unique platforms from animations
+        function extractUniquePlatforms(animations) {
+            const platformSet = new Set();
+
+            animations.forEach(animation => {
+                if (animation.platform && typeof animation.platform === 'string' && animation.platform.trim()) {
+                    platformSet.add(animation.platform.trim());
+                }
+            });
+
+            // Convert set to array and sort alphabetically
+            return Array.from(platformSet).sort();
+        }
+
+        // Update interaction filter tags based on API data
+        function updateInteractionFilterTags(interactions) {
+            console.log("Setting up interaction filters with data:", interactions);
+            const filterContainer = document.getElementById('filter-container');
+            if (!filterContainer) {
+                console.error("Error: filter-container not found");
+                return;
+            }
+
+            // Clear existing filters
+            filterContainer.innerHTML = '';
+
+            // Sort interactions alphabetically for better organization
+            interactions.sort();
+
+            // Add all interaction types (no limit)
+            interactions.forEach(interaction => {
+                if (interaction && typeof interaction === 'string') {
+                    addInteractionFilterTag(filterContainer, interaction);
+                }
+            });
+
+            // Re-attach event listeners
+            setupFilterTagEventListeners();
+
+            // Set up scroll buttons
+            setupFilterScrollButtons();
+
+            console.log(`Total filter tags created: ${filterContainer.querySelectorAll('.filter-tag').length}`);
+        }
+
+        // Setup horizontal scroll buttons for filters
+        function setupFilterScrollButtons() {
+            const filterContainer = document.getElementById('filter-container');
+            const scrollLeftBtn = document.getElementById('scroll-left');
+            const scrollRightBtn = document.getElementById('scroll-right');
+
+            if (!filterContainer || !scrollLeftBtn || !scrollRightBtn) {
+                console.log("One or more elements for filter scrolling not found yet");
+                return;
+            }
+
+            console.log("Setting up filter scroll buttons");
+
+            // Set initial button states
+            updateScrollButtonsVisibility();
+
+            // Handle left scroll
+            scrollLeftBtn.addEventListener('click', () => {
+                // Scroll left by 200px (about 3-4 tags)
+                filterContainer.scrollBy({
+                    left: -200,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Handle right scroll
+            scrollRightBtn.addEventListener('click', () => {
+                // Scroll right by 200px (about 3-4 tags)
+                filterContainer.scrollBy({
+                    left: 200,
+                    behavior: 'smooth'
+                });
+            });
+
+            // Update button states on scroll
+            filterContainer.addEventListener('scroll', updateScrollButtonsVisibility);
+
+            // Update button states on window resize
+            window.addEventListener('resize', updateScrollButtonsVisibility);
+
+            // Function to update button states based on scroll position
+            function updateScrollButtonsVisibility() {
+                // Check if we're at the left edge
+                if (filterContainer.scrollLeft <= 0) {
+                    scrollLeftBtn.style.opacity = '0.5';
+                    scrollLeftBtn.style.pointerEvents = 'none';
+                } else {
+                    scrollLeftBtn.style.opacity = '1';
+                    scrollLeftBtn.style.pointerEvents = 'auto';
+                }
+
+                // Check if we're at the right edge
+                if (filterContainer.scrollLeft + filterContainer.clientWidth >= filterContainer.scrollWidth - 5) {
+                    scrollRightBtn.style.opacity = '0.5';
+                    scrollRightBtn.style.pointerEvents = 'none';
+                } else {
+                    scrollRightBtn.style.opacity = '1';
+                    scrollRightBtn.style.pointerEvents = 'auto';
+                }
+            }
+        }
+
+        // Add a single interaction filter tag
+        function addInteractionFilterTag(container, interaction) {
+            const tag = document.createElement('span');
+            tag.className = 'filter-tag';
+            tag.setAttribute('data-filter', 'interaction');
+            tag.setAttribute('data-value', interaction);
+            tag.textContent = interaction;
+            container.appendChild(tag);
+
+            // Check if this interaction is currently active
+            if (activeFilters.interaction === interaction) {
+                tag.classList.add('active');
+            }
+        }
+
+        // Re-attach event listeners to filter tags
+        function setupFilterTagEventListeners() {
+            const filterTags = document.querySelectorAll('.filter-tag');
+            console.log(`Setting up event listeners for ${filterTags.length} filter tags`);
+
+            filterTags.forEach(tag => {
+                // Add click handler
+                tag.addEventListener('click', () => {
+                    const filterType = tag.getAttribute('data-filter');
+                    const filterValue = tag.getAttribute('data-value');
+                    console.log(`Filter tag clicked: ${filterType}=${filterValue}`);
+
+                    // Toggle filter
+                    if (activeFilters[filterType] === filterValue) {
+                        // If already active, clear filter
+                        activeFilters[filterType] = null;
+                        console.log(`Cleared filter: ${filterType}`);
+
+                        // Reset style
+                        tag.classList.remove('active');
+                    } else {
+                        // Clear other filters of same type
+                        document.querySelectorAll(`.filter-tag[data-filter="${filterType}"]`).forEach(t => {
+                            t.classList.remove('active');
+                        });
+
+                        // Set new filter
+                        activeFilters[filterType] = filterValue;
+                        console.log(`Set filter: ${filterType}=${filterValue}`);
+
+                        // Update style
+                        tag.classList.add('active');
+
+                        // Ensure the clicked tag is visible by scrolling it into view
+                        tag.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'nearest',
+                            inline: 'center'
+                        });
+                    }
+
+                    // Apply filters
+                    applyFilters();
+                });
+
+                // Add hover effect logic
+                tag.addEventListener('mouseover', () => {
+                    if (!tag.classList.contains('active')) {
+                        tag.style.backgroundColor = '#F2EDFF';
+                        tag.style.color = '#3F2B87';
+                    }
+                });
+
+                tag.addEventListener('mouseout', () => {
+                    if (!tag.classList.contains('active')) {
+                        tag.style.backgroundColor = '';
+                        tag.style.color = '';
+                    }
+                });
+            });
         }
     </script>
 </body>
