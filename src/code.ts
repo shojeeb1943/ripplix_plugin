@@ -84,7 +84,7 @@ figma.ui.onmessage = async (msg) => {
           } catch (fetchError) {
             console.error("Error fetching SVG:", fetchError);
             // Use a simplified embedded SVG as fallback
-            svgString = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#1E0A8C"/><text x="16" y="22" font-family="Arial" font-size="20" fill="white" text-anchor="middle">R</text></svg>';
+            svgString = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="20" fill="#1E0A8C"/><text x="16" y="22" font-family="Poppins" font-size="20" fill="white" text-anchor="middle">R</text></svg>';
           }
         }
         
@@ -167,13 +167,13 @@ figma.ui.onmessage = async (msg) => {
         
         // Fallback: Create a simple colored rectangle with the hyperlink
         // First, load the necessary fonts
-        await figma.loadFontAsync({ family: "Inter", style: "Bold" });
-        await figma.loadFontAsync({ family: "Inter", style: "Regular" });
+        await figma.loadFontAsync({ family: "Poppins", style: "Bold" });
+        await figma.loadFontAsync({ family: "Poppins", style: "Regular" });
         
         // Create a container frame
         const frame = figma.createFrame();
         frame.resize(32, 32);
-        frame.cornerRadius = 8;
+        frame.cornerRadius = 20;
         
         // Position at center of viewport
         const center = figma.viewport.center;
@@ -188,7 +188,7 @@ figma.ui.onmessage = async (msg) => {
         
         // Add the text "F" as a fallback for the Figma logo
         const logoText = figma.createText();
-        logoText.fontName = { family: "Inter", style: "Bold" };
+        logoText.fontName = { family: "Poppins", style: "Bold" };
         logoText.fontSize = 16;
         logoText.characters = "R";
         logoText.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
