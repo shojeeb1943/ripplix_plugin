@@ -4,8 +4,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Force cache refresh -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Ripplix - UI Animation Library</title>
     <link rel="icon" type="image/svg+xml" href="https://www.ripplix.com/wp-content/uploads/2024/12/Logo-of-Ripplix-Retina.svg">
+    <!-- Early initialization script for favicon and title -->
+    <script>
+        // Set title and favicon as early as possible
+        (function() {
+            const title = "Ripplix - UI Animation Library";
+            const faviconUrl = "https://www.ripplix.com/wp-content/uploads/2024/12/Logo-of-Ripplix-Retina.svg";
+
+            // Set document title
+            document.title = title;
+
+            // Ensure favicon element exists and is correct
+            let faviconLink = document.querySelector('link[rel="icon"]');
+            if (!faviconLink) {
+                faviconLink = document.createElement('link');
+                faviconLink.rel = 'icon';
+                faviconLink.type = 'image/svg+xml';
+                document.head.appendChild(faviconLink);
+            }
+            faviconLink.href = faviconUrl + '?t=' + Date.now();
+        })();
+    </script>
     <!-- Fallback favicon for browsers that don't support SVG -->
     <link rel="alternate icon" type="image/png" href="https://www.ripplix.com/wp-content/uploads/2024/12/favicon.png">
     <link rel="shortcut icon" href="https://www.ripplix.com/wp-content/uploads/2024/12/favicon.ico">
@@ -887,6 +912,23 @@
                 box-shadow: 0 0 10px 100px var(--dropdown-hover-bg) inset !important;
             }
         }
+        /* Animation for resetting content */
+        
+        @keyframes reset-flash {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        
+        .resetting {
+            animation: reset-flash 0.3s ease-in-out;
+        }
     </style>
 </head>
 
@@ -1127,8 +1169,12 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM loaded, initializing plugin");
 
-            // Ensure favicon is correctly displayed
+            // Run ensureFavicon immediately
             ensureFavicon();
+
+            // Run it again after a small delay to ensure it takes effect
+            setTimeout(ensureFavicon, 100);
+            setTimeout(ensureFavicon, 500);
 
             // Set up periodic check to maintain favicon and title
             setInterval(maintainFaviconAndTitle, 2000);
@@ -2848,6 +2894,37 @@
                 logoElement.style.cursor = 'pointer'; // Add pointer cursor to indicate it's clickable
             }
 
+            // Also make the entire logo container clickable
+            const logoContainer = document.querySelector('.logo-container');
+            if (logoContainer) {
+                logoContainer.addEventListener('click', resetToInitialState);
+                logoContainer.style.cursor = 'pointer'; // Add pointer cursor to indicate it's clickable
+                // Add subtle hover effect to the logo container
+                logoContainer.style.transition = 'transform 0.2s ease';
+
+                // Add hover effect to make the interaction clearer
+                logoContainer.addEventListener('mouseover', () => {
+                    logoContainer.style.transform = 'scale(1.05)';
+                });
+
+                logoContainer.addEventListener('mouseout', () => {
+                    logoContainer.style.transform = 'scale(1)';
+                });
+
+                // Add active effect on press
+                logoContainer.addEventListener('mousedown', () => {
+                    logoContainer.style.transform = 'scale(0.95)';
+                });
+
+                logoContainer.addEventListener('mouseup', () => {
+                    logoContainer.style.transform = 'scale(1.05)';
+                    // Return to normal size after a delay
+                    setTimeout(() => {
+                        logoContainer.style.transform = 'scale(1)';
+                    }, 200);
+                });
+            }
+
             // Set up platform dropdown
             const platformSelect = document.getElementById('platform-select');
             if (platformSelect) {
@@ -3530,6 +3607,13 @@
         // Ensure favicon is correctly rendered in iframe
         function ensureFavicon() {
             const faviconUrl = 'https://www.ripplix.com/wp-content/uploads/2024/12/Logo-of-Ripplix-Retina.svg';
+            const correctTitle = 'Ripplix - UI Animation Library';
+
+            // Ensure correct document title
+            if (document.title !== correctTitle) {
+                console.log('Setting correct document title');
+                document.title = correctTitle;
+            }
 
             // Check if favicon is working
             const links = document.querySelectorAll('link[rel*="icon"]');
@@ -3557,18 +3641,30 @@
                 document.head.appendChild(link);
 
                 // Also set the document title to ensure it's correct in the iframe
-                document.title = 'Ripplix - UI Animation Library';
+                document.title = correctTitle;
             }
 
             // Special handling for Figma plugin iframe
             try {
                 // Check if we're in Figma's iframe environment
                 if (window.parent !== window && typeof parent.postMessage === 'function') {
+                    // Force favicon to appear in Figma iframe
+                    const dynamicFavicon = document.createElement('link');
+                    dynamicFavicon.id = 'dynamic-favicon-' + Date.now(); // Unique ID to bypass cache
+                    dynamicFavicon.rel = 'icon';
+                    dynamicFavicon.type = 'image/svg+xml';
+                    dynamicFavicon.href = faviconUrl + '?t=' + Date.now(); // Add timestamp to bypass cache
+
+                    // Replace any existing favicon links with the new one
+                    const existingDynamicFavicons = document.querySelectorAll('link[id^="dynamic-favicon-"]');
+                    existingDynamicFavicons.forEach(link => link.remove());
+                    document.head.appendChild(dynamicFavicon);
+
                     // Send message to parent frame with title and favicon information
                     parent.postMessage({
                         pluginMessage: {
                             type: 'update-ui-metadata',
-                            title: 'Ripplix - UI Animation Library',
+                            title: correctTitle,
                             favicon: faviconUrl
                         }
                     }, '*');
@@ -3931,16 +4027,36 @@
         function resetToInitialState() {
             console.log("Resetting plugin to initial state");
 
+            // Show brief loading indicator
+            const container = document.getElementById('animations-container');
+            if (container) {
+                // Add a subtle loading flash
+                container.classList.add('resetting');
+
+                // Remove after animation completes
+                setTimeout(() => {
+                    container.classList.remove('resetting');
+                }, 300);
+            }
+
             // Clear search input
             const searchInput = document.getElementById('search-input');
             if (searchInput) {
                 searchInput.value = '';
+                // Trigger any necessary validation/UI updates for the input
+                searchInput.dispatchEvent(new Event('input', {
+                    bubbles: true
+                }));
             }
 
             // Reset platform filter
             const platformSelect = document.getElementById('platform-select');
             if (platformSelect) {
                 platformSelect.value = '';
+                // Trigger change event to ensure UI updates
+                platformSelect.dispatchEvent(new Event('change', {
+                    bubbles: true
+                }));
             }
 
             // Reset active filters
@@ -3958,7 +4074,7 @@
                 tag.style.borderColor = '';
             });
 
-            // Reset pagination state
+            // Reset pagination state to start from first page
             paginationState.currentPage = 1;
 
             // Make sure the load more sentinel is visible
@@ -3967,10 +4083,10 @@
                 sentinel.style.display = '';
             }
 
-            // Reset animations data
+            // Reset animations data to the full set
             animationsData = [...allAnimations];
 
-            // Apply filters (with all filters cleared)
+            // Apply filters (with all filters cleared) to reload animations
             applyFilters();
 
             // Scroll to top
@@ -3978,6 +4094,37 @@
                 top: 0,
                 behavior: 'smooth'
             });
+
+            // Show visual feedback that the reset was performed
+            const feedback = document.createElement('div');
+            feedback.className = 'reset-feedback';
+            feedback.textContent = 'Content refreshed';
+            feedback.style.position = 'fixed';
+            feedback.style.top = '50%';
+            feedback.style.left = '50%';
+            feedback.style.transform = 'translate(-50%, -50%)';
+            feedback.style.backgroundColor = 'rgba(0,0,0,0.7)';
+            feedback.style.color = 'white';
+            feedback.style.padding = '10px 16px';
+            feedback.style.borderRadius = '4px';
+            feedback.style.zIndex = '9999';
+            feedback.style.opacity = '0';
+            feedback.style.transition = 'opacity 0.3s ease';
+            document.body.appendChild(feedback);
+
+            // Show and then fade out
+            setTimeout(() => {
+                feedback.style.opacity = '1';
+
+                setTimeout(() => {
+                    feedback.style.opacity = '0';
+
+                    // Remove from DOM after fade out
+                    setTimeout(() => {
+                        feedback.remove();
+                    }, 300);
+                }, 1000);
+            }, 50);
         }
 
         // Maintain favicon and title in case they're overwritten by the iframe environment
@@ -3996,19 +4143,50 @@
             const links = document.querySelectorAll('link[rel*="icon"]');
 
             links.forEach(link => {
-                if (link.getAttribute('href') === faviconUrl) {
+                if (link.getAttribute('href') && link.getAttribute('href').startsWith(faviconUrl)) {
                     faviconExists = true;
                 }
             });
 
-            // If favicon is missing, add it back
+            // If favicon is missing, add it back with cache-busting parameter
             if (!faviconExists) {
                 console.log('Restoring favicon');
                 const link = document.createElement('link');
                 link.rel = 'icon';
                 link.type = 'image/svg+xml';
-                link.href = faviconUrl;
+                link.href = faviconUrl + '?t=' + Date.now(); // Add timestamp to bypass cache
                 document.head.appendChild(link);
+
+                // Also try to force browser to recognize the favicon change
+                const favicon = document.querySelector('link[rel="icon"]');
+                if (favicon) {
+                    // Toggle the favicon link to force a refresh
+                    favicon.remove();
+                    setTimeout(() => document.head.appendChild(link), 10);
+                }
+            }
+
+            // Special handling for Figma plugin context
+            if (window !== window.parent) {
+                // Create a new dynamic favicon with timestamp every minute to ensure it's fresh
+                const now = Date.now();
+                if (!window.lastFaviconUpdate || now - window.lastFaviconUpdate > 60000) {
+                    const dynamicFavicon = document.createElement('link');
+                    dynamicFavicon.id = 'dynamic-favicon-' + now;
+                    dynamicFavicon.rel = 'icon';
+                    dynamicFavicon.type = 'image/svg+xml';
+                    dynamicFavicon.href = faviconUrl + '?t=' + now;
+
+                    // Replace any existing dynamic favicons
+                    const existingDynamicFavicons = document.querySelectorAll('link[id^="dynamic-favicon-"]');
+                    existingDynamicFavicons.forEach(link => link.remove());
+
+                    // Add the new favicon
+                    document.head.appendChild(dynamicFavicon);
+
+                    // Record the update time
+                    window.lastFaviconUpdate = now;
+                }
             }
         }
     </script>
