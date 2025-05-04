@@ -307,7 +307,6 @@
             padding: 0 16px 16px;
             background-color: #F8F8F9;
             border-top: none;
-            border-bottom: 1px solid #e0e0e0;
             position: sticky;
             top: 64px;
             /* Below the header */
@@ -343,31 +342,40 @@
             flex-direction: column;
         }
         
+        .search-input-container {
+            display: flex;
+            position: relative;
+            width: 100%;
+        }
+        
         .search-input {
             width: 100%;
             padding: 10px 12px;
-            padding-right: 40px;
             border: 1px solid #e0e0e0;
-            border-radius: 4px;
+            border-radius: 8px 0 0 8px;
             font-size: 14px;
             box-sizing: border-box;
-            background-color: #f9f9f9;
+            background-color: #ffffff;
         }
         
-        .search-icon {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 24px;
-            height: 24px;
-            color: #2962ff;
-            pointer-events: none;
+        .search-button {
+            background-color: #14114B;
+            color: white;
+            border: none;
+            border-radius: 0 8px 8px 0;
+            width: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: 9px;
-            /* Adjust to align with the input field */
+            cursor: pointer;
+        }
+        
+        .search-icon {
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .platform-dropdown {
@@ -380,9 +388,10 @@
             padding: 10px 12px;
             padding-right: 30px;
             border: 1px solid #e0e0e0;
-            border-radius: 4px;
+            border-radius: 8px;
             font-size: 14px;
-            background-color: #f9f9f9;
+            font-weight: 600;
+            background-color: #FCFCFC;
             appearance: none;
             cursor: pointer;
             color: #333;
@@ -411,15 +420,16 @@
             border: 1px solid #e0e0e0;
             border-radius: 50px;
             font-size: 14px;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
             color: #333;
         }
         
         .filter-tag.active {
-            background-color: #14114B;
+            background-color: #F2EDFF;
             color: white;
-            border-color: #14114B;
+            border-color: #F2EDFF;
         }
         
         .animation-grid {
@@ -767,8 +777,14 @@
         <div class="search-row">
             <div class="search-container">
                 <div class="search-label">Search for inspirations</div>
-                <input type="text" id="search-input" class="search-input" placeholder="Hover effect, loading">
-                <div class="search-icon">🔍</div>
+                <div class="search-input-container">
+                    <input type="text" id="search-input" class="search-input" placeholder="Hover effect, loading">
+                    <button type="button" class="search-button">
+                        <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/>
+                        </svg>
+                    </button>
+                </div>
             </div>
 
             <div class="platform-dropdown">
@@ -2601,6 +2617,12 @@
             const searchInput = document.getElementById('search-input');
             if (searchInput) {
                 searchInput.addEventListener('input', handleSearch);
+            }
+
+            // Set up search button
+            const searchButton = document.querySelector('.search-button');
+            if (searchButton) {
+                searchButton.addEventListener('click', handleSearch);
             }
 
             // Set up platform dropdown
