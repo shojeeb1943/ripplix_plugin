@@ -534,7 +534,7 @@
         .filter-tag.active {
             background-color: #FFFFFF !important;
             /* Darker purple for active state */
-            color: white;
+            /* color: white; */
             /* White text for better contrast */
             border-color: #EBEBEB !important;
             border-radius: 10px;
@@ -560,6 +560,9 @@
             flex-direction: column;
             position: relative;
             height: 100%;
+            padding-top: 12px;
+            padding-left: 12px;
+            padding-right: 12px;
         }
         
         .animation-card:hover {
@@ -570,10 +573,11 @@
         .video-container {
             position: relative;
             height: 0;
-            padding-bottom: 56.25%;
-            /* 16:9 aspect ratio */
+            padding-bottom: 75%;
+            /* 1:1 aspect ratio */
             overflow: hidden;
             background-color: #f5f5f5;
+            border-radius: 12px;
         }
         
         .animation-video {
@@ -636,7 +640,7 @@
         .add-button {
             margin: 0 16px 16px;
             padding: 8px 0;
-            background-color: var(--primary-color);
+            background-color: #170B44;
             color: white;
             border: none;
             border-radius: 6px;
@@ -2929,8 +2933,9 @@
                 // Get visible animations based on current filters
                 const visibleAnimations = getVisibleAnimations();
 
-                // Update animation count display with filtered results
-                updateFilterResultCount(visibleAnimations.length, allAnimations.length);
+                // Log if we are showing all animations or filtered results
+                const isShowingAll = !activeFilters.platform && !activeFilters.interaction;
+                console.log(`Showing ${isShowingAll ? 'all' : 'filtered'} animations:`, visibleAnimations.length);
 
                 // Show filtered animations
                 if (visibleAnimations.length > 0) {
@@ -2943,6 +2948,9 @@
 
                     // Initialize lazy loading for the new cards
                     initLazyLoading();
+
+                    // Update the animation count display
+                    updateAnimationCount(visibleAnimations.length);
 
                     // Check if we need to load more data from API to fulfill this filter
                     if (visibleAnimations.length < paginationState.itemsPerPage && paginationState.hasMoreItems) {
@@ -3716,44 +3724,42 @@
                     console.log(`Filter tag clicked: ${filterType}=${filterValue}`);
 
                     // Check if this tag is already active
-                    const isActive = tag.classList.contains('active');
+                    const isAlreadyActive = tag.classList.contains('active');
 
-                    // First, deactivate all tags of this type
+                    // Clear all active filters of this type first - reset styling
                     document.querySelectorAll(`.filter-tag[data-filter="${filterType}"]`).forEach(t => {
                         t.classList.remove('active');
+                        // Reset all inline styles
+                        t.style.backgroundColor = '';
+                        t.style.color = '';
+                        t.style.borderColor = '';
                     });
 
-                    // Clear the current filter value
+                    // Clear the filter value
                     activeFilters[filterType] = null;
 
-                    // If the clicked tag wasn't already active, activate it
-                    if (!isActive) {
-                        // Set new filter
+                    // If this wasn't the active tag, make it active
+                    if (!isAlreadyActive) {
+                        // Set the new filter
                         activeFilters[filterType] = filterValue;
                         console.log(`Set filter: ${filterType}=${filterValue}`);
 
-                        // Update style to show active state
+                        // Update tag style
                         tag.classList.add('active');
-
-                        // Ensure the clicked tag is visible by scrolling it into view
-                        tag.scrollIntoView({
-                            behavior: 'smooth',
-                            block: 'nearest',
-                            inline: 'center'
-                        });
                     } else {
-                        console.log(`Cleared filter: ${filterType}`);
+                        console.log(`Cleared filter: ${filterType} - showing all animations`);
                     }
 
-                    // Apply filters
+                    // Apply filters immediately
                     applyFilters();
                 });
 
                 // Add hover effect logic
                 tag.addEventListener('mouseover', () => {
                     if (!tag.classList.contains('active')) {
-                        tag.style.backgroundColor = '#F2EDFF';
-                        tag.style.color = '#3F2B87';
+                        tag.style.backgroundColor = '#FFFFFF';
+                        tag.style.color = '#000000';
+                        tag.style.borderColor = '#EBEBEB';
                     }
                 });
 
@@ -3761,6 +3767,7 @@
                     if (!tag.classList.contains('active')) {
                         tag.style.backgroundColor = '';
                         tag.style.color = '';
+                        tag.style.borderColor = '';
                     }
                 });
             });
