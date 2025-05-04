@@ -41,6 +41,9 @@ if (figma.command === 'copy-url') {
   figma.showUI(__html__, { width: 500, height: 600 });
 }
 
+// Cache for SVG data to avoid repeated fetching
+const svgCache = new Map();
+
 // Handle messages from the UI
 figma.ui.onmessage = async (msg) => {
   if (msg.type === 'add-animation') {
@@ -51,19 +54,39 @@ figma.ui.onmessage = async (msg) => {
       let svgSuccess = false;
       
       try {
-        // Get the SVG URL from animation data or use default fallback
-        const logoUrl = animation.logo || "https://www.ripplix.com/wp-content/uploads/2025/04/Logo-figma.svg";
+        // Get the SVG URL prioritizing product_logo over logo
+        const logoUrl = animation.product_logo || animation.logo || "https://www.ripplix.com/wp-content/uploads/2025/04/Logo-figma.svg";
         console.log("Using logo URL:", logoUrl);
         
-        // Fetch the SVG content
+        // Use cached SVG data if available to improve performance
         let svgString = '';
-        const response = await fetch(logoUrl);
         
-        if (!response.ok) {
-          throw new Error(`Failed to fetch SVG: ${response.status}`);
+        if (svgCache.has(logoUrl)) {
+          console.log("Using cached SVG data");
+          svgString = svgCache.get(logoUrl);
+        } else {
+          // Fetch the SVG content with a timeout
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+          
+          try {
+            const response = await fetch(logoUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+              throw new Error(`Failed to fetch SVG: ${response.status}`);
+            }
+            
+            svgString = await response.text();
+            
+            // Cache the SVG data for future use
+            svgCache.set(logoUrl, svgString);
+          } catch (fetchError) {
+            console.error("Error fetching SVG:", fetchError);
+            // Use a simplified embedded SVG as fallback
+            svgString = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="8" fill="#1E0A8C"/><text x="16" y="22" font-family="Arial" font-size="20" fill="white" text-anchor="middle">R</text></svg>';
+          }
         }
-        
-        svgString = await response.text();
         
         // Ensure the SVG has proper namespace
         if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
@@ -167,7 +190,7 @@ figma.ui.onmessage = async (msg) => {
         const logoText = figma.createText();
         logoText.fontName = { family: "Inter", style: "Bold" };
         logoText.fontSize = 16;
-        logoText.characters = "F";
+        logoText.characters = "R";
         logoText.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
         
         // Center the text in the frame

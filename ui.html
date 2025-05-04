@@ -1,36 +1,205 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-    <meta charset="utf-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ripplix Animation Library</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body,
-        html {
+        /* CSS Variables */
+        
+         :root {
+            --background-color: white;
+            --card-background: white;
+            --text-color: #333;
+            --light-text: #777;
+            --border-color: #e0e0e0;
+            --primary-color: #2962ff;
+            --primary-dark: #0039cb;
+            --hover-color: #f5f5f5;
+            --tag-background: #f0f0f0;
+            --tag-text: #555;
+            --modal-background: rgba(0, 0, 0, 0.7);
+            --error-color: #d32f2f;
+            --success-color: #43a047;
+            --error-background: #ffebee;
+            /* New loading screen colors */
+            --loading-bg: #100F19;
+            --loading-accent: #694EE4;
+            --loading-secondary: #1F1C37;
+        }
+        /* Modern fullscreen loading overlay */
+        
+        .fullscreen-loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--loading-bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 10000;
+            font-family: 'Bricolage Grotesque', sans-serif;
+            opacity: 1;
+            transition: opacity 0.6s ease;
+        }
+        
+        .fullscreen-loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        
+        .loading-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 40px;
+        }
+        
+        .loading-message {
+            max-width: 500px;
+            text-align: center;
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.9);
+            padding: 0 20px;
+        }
+        
+        .loading-spinner {
+            position: relative;
+            width: 50px;
+            height: 50px;
+        }
+        
+        .loading-spinner:before {
+            content: '';
+            box-sizing: border-box;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--loading-accent);
+            animation: spinner 1s linear infinite;
+        }
+        
+        @keyframes spinner {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .loading-dots-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 40px;
+        }
+        
+        .loading-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--loading-accent);
+            animation: pulse 1.5s ease-in-out infinite;
+            opacity: 0.2;
+        }
+        
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+            opacity: 0.4;
+        }
+        
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+            opacity: 0.6;
+        }
+        
+        .loading-dot:nth-child(4) {
+            animation-delay: 0.6s;
+            opacity: 0.8;
+        }
+        
+        .loading-dot:nth-child(5) {
+            animation-delay: 0.8s;
+            opacity: 1;
+        }
+        
+        @keyframes pulse {
+            0%,
+            100% {
+                transform: scale(0.8);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        /* Global styles */
+        
+         :root {
+            --primary-color: #1A66E5;
+            --secondary-color: #3B82F6;
+            --background-color: #f5f5f7;
+            --card-background: #FFFFFF;
+            --text-color: #333333;
+            --light-text: #666666;
+            --border-color: #E5E7EB;
+            --hover-color: #F3F4F6;
+            --shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            --card-radius: 8px;
+            --transition-speed: 0.2s;
+        }
+        
+        * {
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+        
+        body {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #333;
-            background-color: #f9f9f9;
-            /* Allow scrolling while keeping Figma's close button hidden */
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-size: 14px;
+            line-height: 1.5;
             overflow-x: hidden;
-            /* Only hide horizontal overflow */
         }
-        /* Hide figma's default close button if it exists */
-        
-        #figma-x-button,
-        .figma-x-button {
-            display: none !important;
-        }
+        /* Header styles */
         
         .header {
+            background-color: var(--card-background);
+            padding: 16px;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 16px;
-            background-color: white;
-            border-bottom: none;
-            position: relative;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
         .logo-container {
@@ -40,53 +209,108 @@
         
         .logo {
             height: 32px;
+            width: auto;
         }
         
         .stats {
             display: flex;
             align-items: center;
-            gap: 16px;
-            position: relative;
+            gap: 12px;
         }
         
         .ref-count {
-            color: #333;
-            font-size: 14px;
-            font-weight: 500;
             display: flex;
             align-items: center;
+            gap: 4px;
+            font-size: 13px;
+            color: var(--light-text);
         }
         
         .sparkle-icon {
-            color: #FFC107;
-            margin-right: 8px;
-            font-size: 20px;
+            font-size: 14px;
+            margin-right: 2px;
         }
         
         .support-btn {
-            background-color: #f3f3f3;
-            color: #14114B;
+            padding: 8px 12px;
+            border-radius: 4px;
+            background-color: #f5f5f7;
             border: none;
-            border-radius: 50px;
-            padding: 8px 16px;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
+            color: var(--text-color);
             cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        
+        .support-btn:hover {
+            background-color: #e5e7eb;
         }
         
         .close-btn {
-            background: transparent;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            background-color: transparent;
             border: none;
-            cursor: pointer;
             font-size: 16px;
-            margin-left: 16px;
-            color: #333;
+            color: var(--light-text);
+            cursor: pointer;
+            transition: background-color 0.2s ease;
         }
+        
+        .close-btn:hover {
+            background-color: #f5f5f7;
+        }
+        
+        .title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .subtitle {
+            font-size: 12px;
+            color: var(--light-text);
+            margin: 0;
+        }
+        /* Count badge styles */
+        
+        .animation-count-container {
+            background-color: #f0f0f0;
+            padding: 3px 8px;
+            border-radius: 100px;
+            font-size: 12px;
+            color: var(--light-text);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        
+        .total-count {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .filtered-count {
+            font-size: 11px;
+            color: var(--light-text);
+        }
+        /* Search and filter bar */
         
         .search-and-filters {
             padding: 0 16px 16px;
             background-color: white;
             border-bottom: 1px solid #e0e0e0;
+            position: sticky;
+            top: 64px;
+            /* Below the header */
+            z-index: 9;
+            transition: transform 0.3s ease;
         }
         
         .search-row {
@@ -223,24 +447,11 @@
         
         .video-container {
             position: relative;
-            width: 100%;
-            aspect-ratio: 16/9;
-            background-color: #f0f0f0;
+            height: 0;
+            padding-bottom: 56.25%;
+            /* 16:9 aspect ratio */
             overflow: hidden;
-        }
-        
-        .loading-text {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #666;
-            font-size: 14px;
-            z-index: 1;
+            background-color: #f5f5f5;
         }
         
         .animation-video {
@@ -250,7 +461,79 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
-            z-index: 2;
+        }
+        
+        .product-section {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px 8px;
+            gap: 8px;
+        }
+        
+        .product-logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+        
+        .product-logo {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        
+        .product-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-color);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .interaction-container {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 0 16px 12px;
+            gap: 6px;
+        }
+        
+        .interaction-tag {
+            display: inline-block;
+            padding: 4px 8px;
+            background-color: var(--tag-background);
+            color: var(--tag-text);
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .add-button {
+            margin: 0 16px 16px;
+            padding: 8px 0;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .add-button:hover {
+            /* Keep the original color */
+        }
+        
+        .loading-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-color);
+            font-size: 14px;
         }
         
         .play-overlay {
@@ -263,9 +546,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 3;
             opacity: 0;
-            transition: opacity 0.2s ease;
+            transition: opacity 0.2s;
         }
         
         .play-overlay.show-play {
@@ -275,90 +557,11 @@
         .play-icon {
             width: 48px;
             height: 48px;
-            border-radius: 50%;
             background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-        }
-        
-        .product-section {
-            display: flex;
-            align-items: center;
-            padding: 12px 16px;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        
-        .product-logo-container {
-            width: 24px;
-            height: 24px;
-            min-width: 24px;
-            margin-right: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-        
-        .product-logo {
-            width: 100%;
-            height: 100%;
-            border-radius: 4px;
-            object-fit: contain;
-            background-color: #f9f9f9;
-            transition: opacity 0.2s ease;
-        }
-        
-        .product-logo-placeholder {
-            background-color: #f0f0f0;
-            padding: 2px;
-        }
-        
-        .product-logo-loaded {
-            opacity: 1;
-        }
-        
-        .product-name {
-            font-size: 16px;
-            font-weight: 600;
-            color: #333;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        
-        .interaction-container {
-            padding: 12px 16px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .interaction-tag {
-            display: inline-block;
-            padding: 4px 10px;
-            background-color: #f5f5f5;
-            border-radius: 16px;
-            font-size: 12px;
-            color: #666;
-            font-weight: 500;
-        }
-        
-        .add-button {
-            margin: auto 16px 16px;
-            padding: 10px 16px;
-            border-radius: 8px;
-            background-color: #2962ff;
-            color: white;
-            font-weight: 600;
-            text-align: center;
-            border: none;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        
-        .add-button:hover {
-            background-color: #0039cb;
         }
         
         .loading {
@@ -417,18 +620,143 @@
             margin-top: 16px !important;
             font-weight: 500;
         }
+        /* Lazy loading for videos */
+        
+        @media (prefers-reduced-motion: no-preference) {
+            .lazy-video {
+                opacity: 0;
+                transition: opacity 0.5s;
+            }
+            .lazy-video.loaded {
+                opacity: 1;
+            }
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            .animation-card:hover {
+                transform: none;
+            }
+        }
+        /* Error styling */
+        
+        .error-container {
+            padding: 20px;
+            text-align: center;
+            color: var(--text-color);
+            background-color: var(--error-background);
+            border-radius: 8px;
+            margin: 20px auto;
+            max-width: 90%;
+        }
+        
+        .retry-button {
+            padding: 8px 16px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        
+        .retry-button:hover {
+            background-color: var(--primary-dark);
+        }
+        /* Loading indicator styles */
+        
+        .loading-more {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 20px auto;
+            flex-direction: column;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            position: relative;
+            height: 80px;
+        }
+        
+        .loading-more.visible {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .loading-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .loading-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            opacity: 0.6;
+            animation: pulse 1.4s ease-in-out infinite;
+        }
+        
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 0.6;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+        
+        .loading-text {
+            font-size: 14px;
+            color: var(--light-text);
+            margin-top: 4px;
+        }
     </style>
 </head>
 
 <body>
+    <div class="fullscreen-loading" id="fullscreen-loading">
+        <div class="loading-logo">
+            <svg width="80" height="80" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M25 5C13.9543 5 5 13.9543 5 25C5 36.0457 13.9543 45 25 45C36.0457 45 45 36.0457 45 25C45 13.9543 36.0457 5 25 5Z" stroke="#694EE4" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="1 6"/>
+                <path d="M25 15V25L32 32" stroke="#694EE4" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </div>
+        <div class="loading-dots-container">
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+        </div>
+        <p class="loading-message">Loading a curated library of UI Animation, Micro Interaction, Interaction Flow to make your product more delightful.</p>
+    </div>
+
     <div class="header">
         <div class="logo-container">
             <img src="https://www.ripplix.com/wp-content/uploads/2024/12/Logo-of-Ripplix-Retina.svg" alt="Ripplix" class="logo">
         </div>
         <div class="stats">
-            <div class="ref-count"><span class="sparkle-icon">✨</span><span id="animation-count">0</span> Ref. Added</div>
+            <div class="ref-count">
+                <span class="sparkle-icon">🎉</span>
+                <span id="animation-count">0</span>
+                <span id="count-label">Animations</span>
+                <span id="original-count" class="original-count" style="font-size: 12px; color: #666; display: none;">(of 1253 total)</span>
+            </div>
             <button class="support-btn">Support Us</button>
-            <button class="close-btn" id="close-btn">✕</button>
         </div>
     </div>
 
@@ -484,8 +812,9 @@
     </div>
 
     <script>
-        // Set up global variables
-        let allAnimations = [];
+        // Global variables
+        let allAnimations = []; // Store all animations
+        let animationsData = []; // For filtering
         let activeFilters = {
             platform: null,
             interaction: null
@@ -493,47 +822,244 @@
         let paginationState = {
             itemsPerPage: 12,
             currentPage: 1,
-            isLoading: false
+            isLoading: false,
+            hasMoreItems: true,
+            totalItems: 0,
+            apiPage: 1
+        };
+
+        // Create a minimal set of fallback animations
+        const fallbackData = {
+            animations: [{
+                id: "fallback1",
+                title: "Button Hover Animation",
+                url: "https://www.ripplix.com/library/hover-animation/",
+                video_url: "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/5dccb40eb29640f1d718305b9029d4ea/downloads/default.mp4",
+                product: "Ripplix",
+                product_logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg",
+                platform: "Website",
+                industry: "UI/UX",
+                interaction: ["Hover"],
+                logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg"
+            }, {
+                id: "fallback2",
+                title: "Loading Animation",
+                url: "https://www.ripplix.com/library/loading-animation/",
+                video_url: "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/e5d0189359b7e61415ddc2736977c190/downloads/default.mp4",
+                product: "Ripplix",
+                product_logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg",
+                platform: "Web App",
+                industry: "UI/UX",
+                interaction: ["Loading"],
+                logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg"
+            }, {
+                id: "fallback3",
+                title: "Dropdown Menu",
+                url: "https://www.ripplix.com/library/dropdown-menu/",
+                video_url: "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/8e36c8c0878a1fb01e910f81d1dd0a35/downloads/default.mp4",
+                product: "Ripplix",
+                product_logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg",
+                platform: "Web App",
+                industry: "UI/UX",
+                interaction: ["Dropdown"],
+                logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg"
+            }, {
+                id: "fallback4",
+                title: "Toggle Switch Animation",
+                url: "https://www.ripplix.com/library/toggle-switch/",
+                video_url: "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/9a75c9fec2624d8815ed353e0184eb8b/downloads/default.mp4",
+                product: "Ripplix",
+                product_logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg",
+                platform: "Web App",
+                industry: "UI/UX",
+                interaction: ["Toggle"],
+                logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg"
+            }, {
+                id: "fallback5",
+                title: "Scroll Animation",
+                url: "https://www.ripplix.com/library/scroll-animation/",
+                video_url: "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/5b87c9fec2624d8815ed353e0184eb8b/downloads/default.mp4",
+                product: "Ripplix",
+                product_logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg",
+                platform: "Website",
+                industry: "UI/UX",
+                interaction: ["Scroll"],
+                logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg"
+            }, {
+                id: "fallback6",
+                title: "Modal Dialog Animation",
+                url: "https://www.ripplix.com/library/modal-dialog/",
+                video_url: "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/7b99c9fec2624d8815ed353e0184eb8b/downloads/default.mp4",
+                product: "Ripplix",
+                product_logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg",
+                platform: "Web App",
+                industry: "UI/UX",
+                interaction: ["Modal"],
+                logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg"
+            }, {
+                id: "fallback7",
+                title: "Card Hover Effect",
+                url: "https://www.ripplix.com/library/card-hover/",
+                video_url: "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/6c87c9fec2624d8815ed353e0184eb8b/downloads/default.mp4",
+                product: "Ripplix",
+                product_logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg",
+                platform: "Website",
+                industry: "UI/UX",
+                interaction: ["Hover"],
+                logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg"
+            }, {
+                id: "fallback8",
+                title: "Tab Switching Animation",
+                url: "https://www.ripplix.com/library/tab-switching/",
+                video_url: "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/3e87c9fec2624d8815ed353e0184eb8b/downloads/default.mp4",
+                product: "Ripplix",
+                product_logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg",
+                platform: "Web App",
+                industry: "UI/UX",
+                interaction: ["Tabs"],
+                logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg"
+            }, {
+                id: "fallback9",
+                title: "Page Transition",
+                url: "https://www.ripplix.com/library/page-transition/",
+                video_url: "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/2d87c9fec2624d8815ed353e0184eb8b/downloads/default.mp4",
+                product: "Ripplix",
+                product_logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg",
+                platform: "Website",
+                industry: "UI/UX",
+                interaction: ["Transition"],
+                logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg"
+            }, {
+                id: "fallback10",
+                title: "Button Click Animation",
+                url: "https://www.ripplix.com/library/button-click/",
+                video_url: "https://customer-jvsp4o8np8zajpgo.cloudflarestream.com/1c87c9fec2624d8815ed353e0184eb8b/downloads/default.mp4",
+                product: "Ripplix",
+                product_logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg",
+                platform: "Web App",
+                industry: "UI/UX",
+                interaction: ["Button"],
+                logo: "https://www.ripplix.com/wp-content/uploads/2024/04/Logo-figma.svg"
+            }]
         };
 
         // DOM ready handler
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM loaded, initializing plugin");
 
-            // Show loading state
-            const loadingIndicator = document.getElementById('loading-indicator');
-            loadingIndicator.style.display = 'flex';
+            // Show main loading screen
+            showLoadingScreen();
 
-            const container = document.getElementById('animations-container');
-            container.innerHTML = '';
+            // Initialize animation count to a loading state
+            const countElement = document.getElementById('animation-count');
+            const countLabel = document.getElementById('count-label');
+            if (countElement && countLabel) {
+                countElement.textContent = "Loading";
+                countLabel.textContent = "Ref...";
+            } else {
+                console.warn("animation-count or count-label element not found");
+            }
 
-            // Initialize animation count to 0
-            document.getElementById('animation-count').textContent = '0';
+            // Make sure the main structure exists
+            let mainContent = document.querySelector('.main-content');
+            if (!mainContent) {
+                console.log("Creating main content container");
+                mainContent = document.createElement('div');
+                mainContent.className = 'main-content';
+                document.body.appendChild(mainContent);
+            }
 
-            // Fetch animations from API
-            fetchAnimationsFromApi();
+            // Make sure animations container exists
+            let container = document.getElementById('animations-container');
+            if (!container) {
+                console.log("Creating animations container");
+                container = document.createElement('div');
+                container.id = 'animations-container';
+                mainContent.appendChild(container);
+            }
 
-            // Set up event handlers
-            setupEventHandlers();
+            if (!document.getElementById('animation-grid')) {
+                console.log("Creating animation grid container");
+                const grid = document.createElement('div');
+                grid.id = 'animation-grid';
+                grid.className = 'animation-grid';
+                container.appendChild(grid);
+            }
 
-            // Set up scroll listener for pagination
-            setupScrollListener();
+            // Add a slight delay to ensure DOM is fully ready
+            setTimeout(() => {
+                // Load initial animations (12 items) with pagination support
+                loadAnimations();
+
+                // Set up event handlers
+                setupEventHandlers();
+            }, 100);
         });
+
+        // Show fullscreen loading overlay
+        function showLoadingScreen() {
+            const loadingScreen = document.getElementById('fullscreen-loading');
+            if (loadingScreen) {
+                // Update loading text to be modern and clean
+                const loadingText = loadingScreen.querySelector('.loading-text');
+                if (loadingText) {
+                    loadingText.textContent = 'Loading UI Animations';
+                }
+
+                // Clear any error messages or attempt indicators that might be visible
+                const errorElements = loadingScreen.querySelectorAll('.error-message, .attempt-indicator');
+                errorElements.forEach(element => {
+                    element.remove();
+                });
+
+                loadingScreen.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling while loading
+            }
+
+            // Hide default loading indicator
+            const loadingIndicator = document.getElementById('loading-indicator');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
+
+            // Remove any error containers from previous attempts
+            const errorContainers = document.querySelectorAll('.error-container');
+            errorContainers.forEach(container => {
+                container.style.display = 'none';
+            });
+        }
+
+        // Hide fullscreen loading overlay
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('fullscreen-loading');
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+
+                // Allow scrolling after a delay to ensure animation completes
+                setTimeout(() => {
+                    document.body.style.overflow = '';
+                }, 600);
+            }
+        }
 
         // Fetch animations from API
         async function fetchAnimationsFromApi() {
             console.log("Fetching animations from API");
 
-            // Show loading indicator
-            const loadingIndicator = document.getElementById('loading-indicator');
-            if (loadingIndicator) {
-                loadingIndicator.style.display = 'flex';
-            }
+            // Show main loading screen
+            showLoadingScreen();
 
-            // Try multiple API endpoints to find which one works
+            // Try multiple API endpoints with different configurations
             const apiEndpoints = [
+                // Main API endpoints
                 'https://www.ripplix.com/wp-json/ripplix/v1/animations/',
-                'https://ripplix.com/wp-json/ripplix/v1/animations'
+                'https://ripplix.com/wp-json/ripplix/v1/animations/',
+                // Main API endpoints with pagination
+                'https://www.ripplix.com/wp-json/ripplix/v1/animations/?per_page=1500',
+                'https://ripplix.com/wp-json/ripplix/v1/animations/?per_page=1500',
+                // Direct URLs to JSON files (for CORS fallback)
+                'https://cdn.ripplix.com/animations/all.json',
+                'https://static.ripplix.com/api/animations.json'
             ];
 
             // Log the start of API fetch
@@ -543,92 +1069,136 @@
             let finalData = null;
             let finalError = null;
 
-            // Try each endpoint
+            // Try each endpoint with multiple fetch approaches
             for (let i = 0; i < apiEndpoints.length; i++) {
                 const apiUrl = apiEndpoints[i];
                 console.log(`Trying endpoint ${i+1}: ${apiUrl}`);
 
-                // Set up request timeout
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 20000); // 20 second timeout
-
-                try {
-                    // Fetch from the Ripplix API with proper headers
-                    console.log(`Making API request to ${apiUrl}...`);
-                    const response = await fetch(apiUrl, {
-                        signal: controller.signal,
+                // Try different fetch approaches for each endpoint
+                const fetchApproaches = [
+                    // Approach 1: Full options with CORS
+                    {
                         method: 'GET',
                         mode: 'cors',
                         headers: {
                             'Accept': 'application/json',
                             'Content-Type': 'application/json',
+                            'Cache-Control': 'no-cache, no-store, must-revalidate',
+                            'Pragma': 'no-cache'
                         },
-                        credentials: 'omit' // Don't send cookies
-                    });
+                        credentials: 'omit'
+                    },
+                    // Approach 2: Simpler fetch with no CORS
+                    {
+                        method: 'GET',
+                        mode: 'no-cors'
+                    },
+                    // Approach 3: Minimal fetch with default options
+                    {}
+                ];
 
-                    clearTimeout(timeoutId);
+                // Try each fetch approach for the current endpoint
+                for (let j = 0; j < fetchApproaches.length; j++) {
+                    const fetchOptions = fetchApproaches[j];
+                    console.log(`Trying fetch approach ${j+1} for ${apiUrl}`);
 
-                    console.log(`API response status from ${apiUrl}:`, response.status);
+                    // Set up request timeout
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-                    // Clone the response for debugging
-                    const responseClone = response.clone();
-                    const responseText = await responseClone.text();
-                    console.log(`API response text (first 200 chars): ${responseText.substring(0, 200)}...`);
-
-                    if (!response.ok) {
-                        console.error(`Endpoint ${apiUrl} failed with status: ${response.status}`);
-                        continue; // Try next endpoint
-                    }
-
-                    // Parse the response
-                    let data;
                     try {
-                        data = JSON.parse(responseText);
-                        console.log(`Successfully parsed JSON from ${apiUrl}`);
-                    } catch (parseError) {
-                        console.error(`JSON parse error from ${apiUrl}:`, parseError);
-                        console.log("Response was not valid JSON, continuing to next endpoint");
-                        continue; // Try next endpoint
-                    }
+                        // Add the signal to the fetch options
+                        const options = {...fetchOptions,
+                            signal: controller.signal
+                        };
 
-                    // Check if we received any data
-                    if (!data) {
-                        console.error(`${apiUrl} returned null or undefined data`);
-                        continue; // Try next endpoint
-                    }
+                        // Fetch from the API
+                        console.log(`Making API request to ${apiUrl} with options:`, options);
+                        const response = await fetch(apiUrl, options);
 
-                    console.log(`Data structure from ${apiUrl}:`, Object.keys(data));
+                        clearTimeout(timeoutId);
 
-                    // Process different API response formats
-                    if (Array.isArray(data)) {
-                        // Direct array of animations
-                        console.log(`${apiUrl} returned direct array of ${data.length} animations`);
-                        if (data.length > 0) {
-                            console.log(`First animation:`, data[0]);
-                            finalData = {
-                                animations: data
-                            };
-                            successfulFetch = true;
-                            break; // Found working endpoint
+                        console.log(`API response status from ${apiUrl}:`, response.status);
+
+                        if (!response.ok) {
+                            console.error(`Endpoint ${apiUrl} failed with status: ${response.status}`);
+                            continue; // Try next fetch approach
                         }
-                    } else if (data.animations && Array.isArray(data.animations)) {
-                        // Object with animations array
-                        console.log(`${apiUrl} returned object with ${data.animations.length} animations`);
-                        if (data.animations.length > 0) {
-                            console.log(`First animation:`, data.animations[0]);
-                            finalData = data;
-                            successfulFetch = true;
-                            break; // Found working endpoint
+
+                        // Get the response data
+                        const responseText = await response.text();
+                        console.log(`API response length from ${apiUrl}: ${responseText.length} characters`);
+
+                        if (!responseText || responseText.length < 50) {
+                            console.error(`Response from ${apiUrl} is too short or empty`);
+                            continue; // Try next fetch approach
                         }
-                    } else {
-                        console.error(`${apiUrl} returned unexpected data structure`);
-                        console.log(`Data keys: ${Object.keys(data).join(', ')}`);
-                        continue; // Try next endpoint
+
+                        // Parse the response
+                        let data;
+                        try {
+                            data = JSON.parse(responseText);
+                            console.log(`Successfully parsed JSON from ${apiUrl}`);
+                        } catch (parseError) {
+                            console.error(`JSON parse error from ${apiUrl}:`, parseError);
+                            console.log(`First 100 chars of response: ${responseText.substring(0, 100)}...`);
+                            continue; // Try next fetch approach
+                        }
+
+                        // Check if we received any data
+                        if (!data) {
+                            console.error(`${apiUrl} returned null or undefined data`);
+                            continue; // Try next fetch approach
+                        }
+
+                        console.log(`Data structure from ${apiUrl}:`, Object.keys(data));
+
+                        // Process different API response formats
+                        if (Array.isArray(data)) {
+                            // Direct array of animations
+                            console.log(`${apiUrl} returned direct array of ${data.length} animations`);
+                            if (data.length > 0) {
+                                console.log(`First animation:`, data[0]);
+                                finalData = {
+                                    animations: data
+                                };
+                                successfulFetch = true;
+                                break; // Found working approach
+                            }
+                        } else if (data.animations && Array.isArray(data.animations)) {
+                            // Object with animations array
+                            console.log(`${apiUrl} returned object with ${data.animations.length} animations`);
+                            if (data.animations.length > 0) {
+                                console.log(`First animation:`, data.animations[0]);
+                                finalData = data;
+                                successfulFetch = true;
+                                break; // Found working approach
+                            }
+                        } else {
+                            console.error(`${apiUrl} returned unexpected data structure`);
+                            console.log(`Data keys: ${Object.keys(data).join(', ')}`);
+                            continue; // Try next fetch approach
+                        }
+                    } catch (error) {
+                        clearTimeout(timeoutId);
+                        console.error(`Error fetching from ${apiUrl} with approach ${j+1}:`, error);
+                        finalError = error;
+                        continue; // Try next fetch approach
                     }
-                } catch (error) {
-                    console.error(`Error fetching from ${apiUrl}:`, error);
-                    finalError = error;
-                    continue; // Try next endpoint
+                }
+
+                if (successfulFetch) {
+                    break; // Found working endpoint, stop trying others
+                }
+            }
+
+            // If direct fetching failed, try CORS proxies
+            if (!successfulFetch) {
+                console.log("Direct API fetching failed, trying CORS proxies");
+                const proxyResult = await tryFetchWithCorsProxies();
+                if (proxyResult) {
+                    successfulFetch = true;
+                    finalData = proxyResult;
                 }
             }
 
@@ -637,112 +1207,233 @@
                 console.log(`Successfully fetched animation data`);
                 processApiData(finalData);
             } else {
-                console.error("All API endpoints failed");
+                console.error("All API endpoints and approaches failed");
 
-                // Display error message
-                let errorMessage = "Failed to load animation data from the server.";
+                // Use hardcoded fallback data as last resort
+                useFallbackData();
+            }
+        }
 
-                if (finalError) {
-                    if (finalError.name === "AbortError") {
-                        errorMessage = "Request timed out. Please check your internet connection and try again.";
-                    } else if (finalError.message.includes("status: 4")) {
-                        errorMessage = "Server returned an error. The API may be temporarily unavailable.";
-                    } else if (finalError.message.includes("status: 5")) {
-                        errorMessage = "Server error. The Ripplix API is currently experiencing issues.";
+        // Try fetching via CORS proxies
+        async function tryFetchWithCorsProxies() {
+            // List of CORS proxies to try
+            const corsProxies = [
+                'https://cors-anywhere.herokuapp.com/',
+                'https://api.allorigins.win/raw?url=',
+                'https://api.codetabs.com/v1/proxy?quest='
+            ];
+
+            // Target endpoints to try with proxies
+            const targetEndpoints = [
+                'https://www.ripplix.com/wp-json/ripplix/v1/animations/',
+                'https://ripplix.com/wp-json/ripplix/v1/animations/'
+            ];
+
+            // Try each proxy with each target
+            for (const proxy of corsProxies) {
+                for (const target of targetEndpoints) {
+                    const proxyUrl = `${proxy}${encodeURIComponent(target)}`;
+                    console.log(`Trying CORS proxy: ${proxyUrl}`);
+
+                    // Set up request timeout
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+                    try {
+                        const response = await fetch(proxyUrl, {
+                            method: 'GET',
+                            signal: controller.signal,
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        });
+
+                        clearTimeout(timeoutId);
+
+                        if (!response.ok) {
+                            console.error(`Proxy ${proxy} failed with status: ${response.status}`);
+                            continue;
+                        }
+
+                        const data = await response.json();
+
+                        // Check if the response has the expected format
+                        if (data && ((Array.isArray(data) && data.length > 0) ||
+                                (data.animations && Array.isArray(data.animations) && data.animations.length > 0))) {
+                            console.log(`Successfully fetched via proxy ${proxy}`);
+                            return data;
+                        }
+                    } catch (error) {
+                        clearTimeout(timeoutId);
+                        console.error(`Error using proxy ${proxy}:`, error);
                     }
                 }
+            }
 
-                console.error(errorMessage);
-                showApiError(`${errorMessage} Please try again later or contact support@ripplix.com with ID range starting from 2051.`);
+            return null; // All proxies failed
+        }
+
+        // Use hardcoded fallback data when API fails
+        function useFallbackData() {
+            console.log("Using fallback animation data");
+
+            // Try to show what went wrong
+            const errorContainer = document.createElement('div');
+            errorContainer.style.backgroundColor = 'rgba(255, 193, 7, 0.2)';
+            errorContainer.style.color = '#856404';
+            errorContainer.style.padding = '12px 16px';
+            errorContainer.style.margin = '0 16px 16px';
+            errorContainer.style.borderRadius = '6px';
+            errorContainer.style.fontSize = '14px';
+            errorContainer.style.lineHeight = '1.5';
+            errorContainer.style.textAlign = 'center';
+
+            // Create header 
+            const header = document.createElement('div');
+            header.style.fontWeight = 'bold';
+            header.style.marginBottom = '8px';
+            header.textContent = 'Unable to connect to Ripplix API';
+            errorContainer.appendChild(header);
+
+            // Create message
+            const message = document.createElement('div');
+            message.innerHTML = 'Using limited offline data. The plugin will have reduced functionality.<br>Please check your internet connection and try again later.';
+            errorContainer.appendChild(message);
+
+            // Add a retry button
+            const retryButton = document.createElement('button');
+            retryButton.textContent = 'Retry Connection';
+            retryButton.style.marginTop = '10px';
+            retryButton.style.padding = '6px 12px';
+            retryButton.style.backgroundColor = '#FFC107';
+            retryButton.style.color = '#856404';
+            retryButton.style.border = 'none';
+            retryButton.style.borderRadius = '4px';
+            retryButton.style.cursor = 'pointer';
+            retryButton.addEventListener('click', () => {
+                // Reload the plugin
+                window.location.reload();
+            });
+            errorContainer.appendChild(retryButton);
+
+            // Process the fallback data
+            processApiData({
+                animations: fallbackData.animations
+            });
+
+            // Show message about using fallback data
+            const container = document.getElementById('animations-container');
+            if (container) {
+                // Insert at the top of the container
+                if (container.firstChild) {
+                    container.insertBefore(errorContainer, container.firstChild);
+                } else {
+                    container.appendChild(errorContainer);
+                }
             }
         }
 
         // Process API data and create grid
         function processApiData(apiData) {
             // Check if we have valid data
-            if (!apiData || !apiData.animations || !Array.isArray(apiData.animations) || apiData.animations.length === 0) {
+            if (!apiData || (!apiData.animations && !Array.isArray(apiData)) ||
+                (apiData.animations && !Array.isArray(apiData.animations)) ||
+                (apiData.animations && apiData.animations.length === 0) ||
+                (Array.isArray(apiData) && apiData.length === 0)) {
                 console.error("API returned invalid or empty data");
                 showApiError("No valid animation data could be retrieved from the API");
                 return;
             }
 
-            console.log("Processing API data with", apiData.animations.length, "animations");
-
-            // Accept all animations without filtering by product name
-            // We just need to ensure the data structure is valid
-
-            // Validate and transform API data to our format
-            const validAnimations = apiData.animations
-                .filter(item => {
-                    // Basic validation of required fields
-                    if (!item.id) {
-                        console.log(`Filtering out animation without ID`);
-                        return false;
-                    }
-
-                    // Keep only items with valid video URLs
-                    if (!item.video_url || !isValidUrl(item.video_url)) {
-                        console.log(`Filtering out animation with invalid video URL: ${item.id}`);
-                        return false;
-                    }
-
-                    return true;
-                })
-                .map(item => {
-                    // Get the first interaction type if multiple exist
-                    const interaction = Array.isArray(item.interaction) && item.interaction.length > 0 ?
-                        item.interaction[0] :
-                        (typeof item.interaction === 'string' ? item.interaction : "Animation");
-
-                    // Fix Cloudflare URLs
-                    let videoUrl = item.video_url;
-                    if (videoUrl && videoUrl.includes('cloudflarestream')) {
-                        videoUrl = fixCloudflareUrl(videoUrl);
-                    }
-
-                    return {
-                        id: item.id.toString(),
-                        title: item.title || 'Untitled Animation',
-                        platform: item.platform || 'Web App',
-                        interaction: interaction,
-                        description: item.description || `${item.title || 'Animation'} - ${interaction} animation`,
-                        url: item.url || '',
-                        video_url: videoUrl || '',
-                        product: item.product || 'Ripplix',
-                        industry: item.industry || '',
-                        product_logo: item.product_logo || ''
-                    };
-                });
-
-            // Remove duplicate animations
-            const uniqueAnimations = removeDuplicateAnimations(validAnimations);
-
-            // Log the duplicate removal statistics
-            console.log(`Removed ${validAnimations.length - uniqueAnimations.length} duplicate animations`);
-
-            // Log the ID range for debugging
-            if (uniqueAnimations.length > 0) {
-                const ids = uniqueAnimations.map(a => parseInt(a.id)).sort((a, b) => a - b);
-                console.log(`Animation ID range: ${ids[0]} to ${ids[ids.length - 1]}`);
+            // Handle different API response formats
+            let originalAnimations = [];
+            if (Array.isArray(apiData)) {
+                // Direct array of animations
+                originalAnimations = apiData;
+                console.log("API returned direct array of animations:", originalAnimations.length);
+            } else if (apiData.animations && Array.isArray(apiData.animations)) {
+                // Object with animations array
+                originalAnimations = apiData.animations;
+                console.log("API returned object with animations array:", originalAnimations.length);
             }
 
-            // Check if we have any valid animations after filtering
+            console.log("Processing API data with", originalAnimations.length, "animations");
+
+            // Store the original count for reference
+            const originalApiCount = originalAnimations.length;
+            console.log("Original animation count from API:", originalApiCount);
+
+            // Filter out animations with missing essential data
+            const validAnimations = originalAnimations.filter(animation => {
+                return animation && animation.id && animation.title &&
+                    (animation.video_url || animation.animation_url);
+            });
+
+            console.log(`Valid animations (with ID, title, and URL): ${validAnimations.length}`);
+
+            // Process animations to standardize format
+            const processedAnimations = validAnimations.map(animation => {
+                // Make sure URL is properly formatted
+                let videoUrl = animation.video_url || animation.animation_url || '';
+                if (videoUrl && videoUrl.includes('cloudflarestream')) {
+                    videoUrl = fixCloudflareUrl(videoUrl);
+                }
+
+                // Standardize the animation object format
+                return {
+                    id: animation.id.toString(),
+                    title: animation.title || 'Untitled Animation',
+                    platform: animation.platform || 'Web App',
+                    interaction: Array.isArray(animation.interaction) ?
+                        animation.interaction :
+                        (typeof animation.interaction === 'string' ? [animation.interaction] : []),
+                    url: animation.url || '',
+                    video_url: videoUrl,
+                    product: animation.product || 'Ripplix',
+                    industry: animation.industry || '',
+                    product_logo: animation.product_logo || '',
+                    logo: animation.logo || animation.product_logo || ''
+                };
+            });
+
+            // Remove duplicates
+            const uniqueAnimations = removeDuplicateAnimations(processedAnimations);
+            console.log(`Unique animations after deduplication: ${uniqueAnimations.length}`);
+
+            // Check if we found any animations
             if (uniqueAnimations.length === 0) {
                 console.error("No valid animations found after filtering");
-                showApiError("No valid animations found. The data may be corrupted or invalid.");
+                showApiError("No valid animations were found in the API response. Please try again later.");
                 return;
             }
 
             // Set the global animations array
             allAnimations = uniqueAnimations;
+            animationsData = uniqueAnimations;
 
-            // Create grid with the transformed animations
+            console.log(`Final animation count: ${allAnimations.length}`);
+
+            // Create grid with the processed animations
             createAnimationGrid(allAnimations);
 
             // Update the animation count display
             const countEl = document.getElementById('animation-count');
             if (countEl) {
+                // Show the total count of unique animations
                 countEl.textContent = allAnimations.length.toString();
+
+                // Add a tooltip with more details
+                countEl.title = `${allAnimations.length} animations after filtering (API returned ${originalApiCount} total)`;
+
+                // Log the comparison
+                console.log(`Displaying ${allAnimations.length} animations out of ${originalApiCount} from the API`);
+
+                // Update the original count display if it exists
+                const originalCountEl = document.getElementById('original-count');
+                if (originalCountEl) {
+                    originalCountEl.textContent = `(of ${originalApiCount} total)`;
+                }
             }
 
             // Set up sorting
@@ -752,53 +1443,99 @@
             setupFilters(apiData);
         }
 
+        // Function to update animation count display
+        function updateAnimationCount(visibleCount) {
+            const countElement = document.getElementById('animation-count');
+            const countLabel = document.getElementById('count-label');
+
+            if (countElement && countLabel) {
+                // Get the total count from pagination state or all animations
+                const totalCount = paginationState.totalItems > 0 ? paginationState.totalItems : allAnimations.length;
+
+                // Format the count with K for thousands
+                let formattedCount;
+                if (totalCount >= 10000) {
+                    formattedCount = Math.floor(totalCount / 1000) + "K+";
+                } else if (totalCount >= 1000) {
+                    formattedCount = (totalCount / 1000).toFixed(1) + "K";
+                } else {
+                    formattedCount = totalCount;
+                }
+
+                // Update the count display
+                countElement.textContent = formattedCount;
+                countLabel.textContent = "Ref. Added";
+            }
+        }
+
+        // Update total count display
+        function updateTotalCount() {
+            const totalCount = paginationState.totalItems > 0 ? paginationState.totalItems : allAnimations.length;
+            const countElement = document.getElementById('animation-count');
+            const countLabel = document.getElementById('count-label');
+
+            if (countElement && countLabel) {
+                // Format the count with K for thousands
+                let formattedCount;
+                if (totalCount >= 10000) {
+                    formattedCount = Math.floor(totalCount / 1000) + "K+";
+                } else if (totalCount >= 1000) {
+                    formattedCount = (totalCount / 1000).toFixed(1) + "K";
+                } else {
+                    formattedCount = totalCount;
+                }
+
+                // Update the count display
+                countElement.textContent = formattedCount;
+                countLabel.textContent = "Ref. Added";
+            }
+        }
+
         // Remove duplicate animations based on ID and title
         function removeDuplicateAnimations(animations) {
             console.log(`Checking for duplicates among ${animations.length} animations`);
 
+            // Define problematic animations that need special handling
+            const knownDuplicatePatterns = [
+                'join clyde',
+                'virtue',
+                'mage ai',
+                'smartlead',
+                'chatbase',
+                'raycast',
+                'midjourney'
+            ];
+
             // Track unique IDs to filter out duplicates
             const seenIds = new Set();
-            const seenTitles = new Map();
+            const uniqueAnimations = [];
             const duplicates = [];
 
-            // Filter out duplicates
-            const uniqueAnimations = animations.filter(animation => {
-                // Use ID as primary key for deduplication
+            // First pass: Check for exact duplicate IDs (most reliable method)
+            animations.forEach(animation => {
+                if (!animation || !animation.id) return;
+
+                // Use ID as primary key if we've seen it already
                 if (seenIds.has(animation.id)) {
                     duplicates.push({
                         id: animation.id,
                         title: animation.title,
                         reason: 'duplicate ID'
                     });
-                    return false;
+                    return;
                 }
 
-                // Also check for duplicates by title and product
-                const titleKey = `${animation.title}-${animation.product}`.toLowerCase();
-                if (seenTitles.has(titleKey)) {
-                    // This is likely a duplicate with a different ID
-                    console.log(`Potential duplicate: "${animation.title}" - ID ${animation.id} vs ${seenTitles.get(titleKey)}`);
-                    duplicates.push({
-                        id: animation.id,
-                        title: animation.title,
-                        reason: 'duplicate title',
-                        originalId: seenTitles.get(titleKey)
-                    });
-                    return false;
-                }
-
-                // This is a unique animation
+                // Otherwise, add it to our unique animations
                 seenIds.add(animation.id);
-                seenTitles.set(titleKey, animation.id);
-                return true;
+                uniqueAnimations.push(animation);
             });
 
-            // Log duplicates for debugging
+            console.log(`After removing duplicate IDs: ${uniqueAnimations.length} animations remain`);
+            console.log(`Removed ${duplicates.length} duplicates`);
+
+            // Log some debug info about the duplicates
             if (duplicates.length > 0) {
-                console.log(`Removed ${duplicates.length} duplicate animations:`, duplicates.slice(0, 5));
-                if (duplicates.length > 5) {
-                    console.log(`...and ${duplicates.length - 5} more duplicates`);
-                }
+                console.log(`Example duplicates:`, duplicates.slice(0, 5));
             }
 
             return uniqueAnimations;
@@ -812,43 +1549,92 @@
                 loadingIndicator.style.display = 'none';
             }
 
-            // Get container and clear it
+            // Show error message
             const container = document.getElementById('animations-container');
-            container.innerHTML = '';
+            if (container) {
+                container.innerHTML = '';
 
-            // Create error message element
-            const errorDiv = document.createElement('div');
-            errorDiv.className = 'api-error-message';
+                const errorContainer = document.createElement('div');
+                errorContainer.style.padding = '20px';
+                errorContainer.style.textAlign = 'center';
+                errorContainer.style.color = 'var(--text-color)';
+                errorContainer.style.backgroundColor = 'var(--error-background)';
+                errorContainer.style.borderRadius = '8px';
+                errorContainer.style.margin = '20px auto';
+                errorContainer.style.maxWidth = '90%';
+                errorContainer.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
 
-            // Create error icon
-            const errorIcon = document.createElement('div');
-            errorIcon.className = 'error-icon';
-            errorIcon.innerHTML = '<svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22C6.477 22 2 17.523 2 12S6.477 2 12 2s10 4.477 10 10-4.477 10-10 10zm-1-7v2h2v-2h-2zm0-8v6h2V7h-2z" fill="#D32F2F"/></svg>';
-            errorDiv.appendChild(errorIcon);
+                const errorTitle = document.createElement('h3');
+                errorTitle.textContent = 'Error Loading Animations';
+                errorTitle.style.marginBottom = '12px';
+                errorTitle.style.color = 'var(--error-color)';
+                errorContainer.appendChild(errorTitle);
 
-            // Create error title
-            const errorTitle = document.createElement('h3');
-            errorTitle.textContent = 'Error Loading Animations';
-            errorDiv.appendChild(errorTitle);
+                const errorMessage = document.createElement('p');
+                errorMessage.textContent = message;
+                errorMessage.style.marginBottom = '12px';
+                errorContainer.appendChild(errorMessage);
 
-            // Create error message
-            const errorMessage = document.createElement('p');
-            errorMessage.textContent = message;
-            errorDiv.appendChild(errorMessage);
+                // Add troubleshooting section
+                const troubleshooting = document.createElement('div');
+                troubleshooting.style.marginTop = '20px';
+                troubleshooting.style.padding = '10px';
+                troubleshooting.style.backgroundColor = 'rgba(255, 255, 255, 0.1)';
+                troubleshooting.style.borderRadius = '6px';
+                troubleshooting.style.fontSize = '13px';
 
-            // Create contact support message
-            const supportMessage = document.createElement('p');
-            supportMessage.className = 'support-message';
-            supportMessage.textContent = 'Please contact support@ripplix.com for assistance.';
-            errorDiv.appendChild(supportMessage);
+                const troubleshootingTitle = document.createElement('h4');
+                troubleshootingTitle.textContent = 'Troubleshooting';
+                troubleshootingTitle.style.marginBottom = '8px';
+                troubleshooting.appendChild(troubleshootingTitle);
 
-            // Add error message to container
-            container.appendChild(errorDiv);
+                const troubleshootingList = document.createElement('ul');
+                troubleshootingList.style.textAlign = 'left';
+                troubleshootingList.style.paddingLeft = '20px';
 
-            // Update animation count to 0
-            const countEl = document.getElementById('animation-count');
-            if (countEl) {
-                countEl.textContent = '0';
+                const tips = [
+                    'Check your internet connection',
+                    'If you are behind a corporate firewall, try connecting from a different network',
+                    'Try refreshing the plugin',
+                    'Clear your browser cache and try again',
+                    'The Ripplix API may be temporarily unavailable'
+                ];
+
+                tips.forEach(tip => {
+                    const item = document.createElement('li');
+                    item.textContent = tip;
+                    item.style.marginBottom = '5px';
+                    troubleshootingList.appendChild(item);
+                });
+
+                troubleshooting.appendChild(troubleshootingList);
+                errorContainer.appendChild(troubleshooting);
+
+                // Add support contact info
+                const supportText = document.createElement('p');
+                supportText.textContent = 'Please contact support@ripplix.com for assistance.';
+                supportText.style.marginTop = '15px';
+                supportText.style.fontSize = '13px';
+                errorContainer.appendChild(supportText);
+
+                // Add retry button
+                const retryButton = document.createElement('button');
+                retryButton.textContent = 'Try Again';
+                retryButton.className = 'retry-button';
+                retryButton.style.marginTop = '15px';
+                retryButton.style.padding = '8px 16px';
+                retryButton.style.backgroundColor = 'var(--primary-color)';
+                retryButton.style.color = 'white';
+                retryButton.style.border = 'none';
+                retryButton.style.borderRadius = '4px';
+                retryButton.style.cursor = 'pointer';
+                retryButton.addEventListener('click', () => {
+                    // Reload the plugin
+                    window.location.reload();
+                });
+                errorContainer.appendChild(retryButton);
+
+                container.appendChild(errorContainer);
             }
         }
 
@@ -899,11 +1685,33 @@
 
         // Create animation grid
         function createAnimationGrid(animations) {
-            console.log(`Creating animation grid with ${animations.length} animations`);
+            console.log(`Creating animation grid with ${animations ? animations.length : 0} animations`);
 
-            // Get container and clear it
+            // Get container element
             const container = document.getElementById('animations-container');
-            container.innerHTML = '';
+            if (!container) {
+                console.error("Error: animations-container not found!");
+
+                // Try to find or create the main content area
+                let mainContent = document.querySelector('.main-content');
+                if (!mainContent) {
+                    console.log("Main content not found, creating it");
+                    mainContent = document.createElement('div');
+                    mainContent.className = 'main-content';
+                    document.body.appendChild(mainContent);
+                }
+
+                // Create the animations container
+                const newContainer = document.createElement('div');
+                newContainer.id = 'animations-container';
+                mainContent.appendChild(newContainer);
+
+                console.log("Created new animations container");
+
+                // Now try again with the new container
+                createAnimationGrid(animations);
+                return;
+            }
 
             // Hide loading indicator
             const loadingIndicator = document.getElementById('loading-indicator');
@@ -911,53 +1719,63 @@
                 loadingIndicator.style.display = 'none';
             }
 
-            // Handle empty state
+            // Clear container
+            container.innerHTML = '';
+            console.log("Cleared animations container");
+
+            // Create grid element
+            const grid = document.createElement('div');
+            grid.id = 'animation-grid';
+            grid.className = 'animation-grid';
+            container.appendChild(grid);
+            console.log("Created animation grid element");
+
+            // Check if we have animations
             if (!animations || animations.length === 0) {
-                container.innerHTML = '<div class="loading">No animations found</div>';
+                console.warn("No animations to display");
+                const noResults = document.createElement('div');
+                noResults.className = 'no-results';
+                noResults.textContent = 'No animations found. Try adjusting your filters.';
+                container.appendChild(noResults);
                 return;
             }
 
-            // Create grid
-            const grid = document.createElement('div');
-            grid.className = 'animation-grid';
-            grid.id = 'animation-grid';
-
-            // Reset pagination state
-            paginationState.currentPage = 1;
-            paginationState.isLoading = false;
-
-            // Initial load - only show first page of animations
-            const initialAnimations = getVisibleAnimations();
-            console.log(`Displaying initial ${initialAnimations.length} animations`);
-
-            // Add animation cards for initial page
-            initialAnimations.forEach(animation => {
-                const card = createAnimationCard(animation);
-                grid.appendChild(card);
+            console.log(`Adding ${animations.length} animation cards to grid`);
+            // Add animation cards to grid
+            animations.forEach((animation, index) => {
+                try {
+                    const card = createAnimationCard(animation);
+                    if (card) {
+                        grid.appendChild(card);
+                    } else {
+                        console.warn(`Failed to create card for animation ${index}:`, animation);
+                    }
+                } catch (error) {
+                    console.error(`Error creating card for animation ${index}:`, error, animation);
+                }
             });
 
-            // Add grid to container
-            container.appendChild(grid);
-
-            // Add loading indicator that will show when loading more
-            const loadingMore = document.createElement('div');
-            loadingMore.className = 'loading';
-            loadingMore.id = 'loading-more';
-            loadingMore.style.display = 'none';
-            loadingMore.textContent = 'Loading more animations...';
-            container.appendChild(loadingMore);
-
-            console.log("Animation grid created with initial animations");
-
-            // Initialize lazy loading
+            console.log(`Added ${grid.children.length} animation cards to grid`);
+            // Initialize lazy loading for videos
             initLazyLoading();
+
+            // Remove any loading indicators
+            document.querySelectorAll('.loading-container').forEach(container => {
+                container.style.display = 'none';
+            });
         }
 
         // Create a single animation card
         function createAnimationCard(animation) {
+            // Skip invalid animations
+            if (!animation || !animation.id) {
+                return null;
+            }
+
             // Create card element
             const card = document.createElement('div');
             card.className = 'animation-card';
+            card.setAttribute('data-id', animation.id);
 
             // 1. Video container
             const videoContainer = document.createElement('div');
@@ -969,90 +1787,55 @@
             loadingText.textContent = 'Loading...';
             videoContainer.appendChild(loadingText);
 
-            // Create video element
-            const video = document.createElement('video');
-            video.className = 'animation-video';
-            video.src = animation.video_url;
-            video.muted = true;
-            video.loop = true;
-            video.playsInline = true;
-            video.loading = 'lazy';
+            // Create placeholder for video - we'll only load it when visible
+            const videoPlaceholder = document.createElement('div');
+            videoPlaceholder.className = 'video-placeholder';
+            videoPlaceholder.dataset.videoUrl = animation.video_url || animation.animation_url || '';
+            videoPlaceholder.dataset.videoId = animation.id;
 
             // Add play overlay
             const playOverlay = document.createElement('div');
-            playOverlay.className = 'play-overlay';
+            playOverlay.className = 'play-overlay show-play';
 
             const playIcon = document.createElement('div');
             playIcon.className = 'play-icon';
             playIcon.innerHTML = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M8 5V19L19 12L8 5Z" fill="white"/></svg>';
             playOverlay.appendChild(playIcon);
 
-            videoContainer.appendChild(video);
+            videoContainer.appendChild(videoPlaceholder);
             videoContainer.appendChild(playOverlay);
 
-            // Handle video events
-            video.addEventListener('loadeddata', () => {
-                loadingText.style.display = 'none';
-                video.play().catch(err => {
-                    // Show play button if autoplay fails
-                    playOverlay.classList.add('show-play');
-                });
-            });
-
-            video.addEventListener('error', () => {
-                // Show play button if video fails to load
-                loadingText.textContent = 'Video failed to load';
-                playOverlay.classList.add('show-play');
-            });
-
-            video.addEventListener('play', () => {
-                playOverlay.classList.remove('show-play');
-            });
-
-            video.addEventListener('pause', () => {
-                playOverlay.classList.add('show-play');
-            });
-
-            // Handle click event for video container
-            videoContainer.addEventListener('click', (event) => {
-                if (video.paused) {
-                    video.play().catch(err => console.error('Play error:', err));
-                } else {
-                    video.pause();
-                }
-            });
+            // Add poster image instead of loading video immediately
+            videoContainer.style.backgroundImage = `url('https://www.ripplix.com/wp-content/uploads/2024/12/Placeholder-animations.svg')`;
+            videoContainer.style.backgroundSize = 'cover';
+            videoContainer.style.backgroundPosition = 'center';
 
             // 2. Product section
             const productSection = document.createElement('div');
             productSection.className = 'product-section';
 
-            // Add product logo if available
-            if (animation.product_logo && animation.product_logo.trim() && isValidUrl(animation.product_logo)) {
+            // Standardize product data
+            const product = animation.product || 'Ripplix';
+
+            // Prioritize product_logo over logo
+            const logo = animation.product_logo || animation.logo || '';
+
+            // Add product logo if available - with lazy loading
+            if (logo && isValidUrl(logo)) {
                 const logoContainer = document.createElement('div');
                 logoContainer.className = 'product-logo-container';
 
-                const logoImg = document.createElement('img');
-                logoImg.className = 'product-logo';
-                logoImg.src = animation.product_logo;
-                logoImg.alt = animation.product || 'Product logo';
-                logoImg.width = 24;
-                logoImg.height = 24;
+                // Use a placeholder first
+                const logoPlaceholder = document.createElement('div');
+                logoPlaceholder.className = 'product-logo-placeholder';
+                logoPlaceholder.dataset.logoUrl = logo;
+                logoPlaceholder.dataset.logoAlt = product;
+                logoPlaceholder.style.width = '24px';
+                logoPlaceholder.style.height = '24px';
+                logoPlaceholder.style.backgroundColor = '#f0f0f0';
+                logoPlaceholder.style.borderRadius = '4px';
 
-                // Handle error for any image format
-                logoImg.onerror = function() {
-                    // Remove the logo container completely if the image fails to load
-                    const container = this.closest('.product-logo-container');
-                    if (container) {
-                        container.remove();
-                    }
-                };
-
-                // Ensure image is loaded properly
-                logoImg.onload = function() {
-                    this.classList.add('product-logo-loaded');
-                };
-
-                logoContainer.appendChild(logoImg);
+                logoContainer.appendChild(logoPlaceholder);
                 productSection.appendChild(logoContainer);
             } else {
                 // Add a spacer to maintain consistent layout if there's no logo
@@ -1065,7 +1848,7 @@
             // Add product name (using product field as product name per API)
             const productName = document.createElement('div');
             productName.className = 'product-name';
-            productName.textContent = animation.product || 'Untitled Product';
+            productName.textContent = product;
             productSection.appendChild(productName);
 
             // 3. Interaction container
@@ -1080,8 +1863,9 @@
                 interactions = animation.interaction;
             }
 
-            // Create tags for each interaction
-            interactions.forEach(interaction => {
+            // Create tags for each interaction - limit to 3 max for performance
+            const maxTags = 3;
+            interactions.slice(0, maxTags).forEach(interaction => {
                 if (interaction && interaction.trim()) {
                     const tag = document.createElement('span');
                     tag.className = 'interaction-tag';
@@ -1105,14 +1889,180 @@
             card.appendChild(interactionContainer);
             card.appendChild(addButton);
 
-            // Add click event to show preview modal (unless add button is clicked)
-            card.addEventListener('click', (event) => {
-                if (!event.target.closest('.add-button')) {
-                    showPreviewModal(animation);
-                }
-            });
+            // Mark card as needing initialization when it becomes visible
+            card.dataset.needsInit = 'true';
 
             return card;
+        }
+
+        // Initialize lazy loading of videos and images
+        function initLazyLoading() {
+            // Use IntersectionObserver for better performance
+            if ('IntersectionObserver' in window) {
+                const lazyLoadObserver = new IntersectionObserver((entries, observer) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            const card = entry.target;
+
+                            // Only initialize once
+                            if (card.dataset.needsInit === 'true') {
+                                // Initialize video
+                                const videoPlaceholder = card.querySelector('.video-placeholder');
+                                if (videoPlaceholder && videoPlaceholder.dataset.videoUrl) {
+                                    initializeVideo(card, videoPlaceholder.dataset.videoUrl);
+                                }
+
+                                // Initialize logo
+                                const logoPlaceholder = card.querySelector('.product-logo-placeholder');
+                                if (logoPlaceholder && logoPlaceholder.dataset.logoUrl) {
+                                    initializeLogo(logoPlaceholder);
+                                }
+
+                                // Mark as initialized
+                                card.dataset.needsInit = 'false';
+                            }
+
+                            // Stop observing this card after it's initialized
+                            observer.unobserve(card);
+                        }
+                    });
+                }, {
+                    rootMargin: '100px', // Load when within 100px of viewport
+                    threshold: 0.1
+                });
+
+                // Observe all cards
+                document.querySelectorAll('.animation-card[data-needs-init="true"]').forEach(card => {
+                    lazyLoadObserver.observe(card);
+                });
+            } else {
+                // Fallback for browsers without IntersectionObserver
+                initializeAllVisibleCards();
+            }
+        }
+
+        // Initialize video for a card
+        function initializeVideo(card, videoUrl) {
+            if (!videoUrl) return;
+
+            const videoContainer = card.querySelector('.video-container');
+            if (!videoContainer) return;
+
+            // Create and set up video element
+            const video = document.createElement('video');
+            video.className = 'animation-video';
+
+            // Format the URL if needed
+            if (videoUrl.includes('cloudflarestream')) {
+                videoUrl = fixCloudflareUrl(videoUrl);
+            }
+
+            // Set up video attributes
+            video.src = videoUrl;
+            video.muted = true;
+            video.loop = true;
+            video.playsInline = true;
+            video.loading = 'lazy';
+
+            // Replace placeholder with actual video
+            const placeholder = videoContainer.querySelector('.video-placeholder');
+            if (placeholder) {
+                videoContainer.replaceChild(video, placeholder);
+            } else {
+                videoContainer.appendChild(video);
+            }
+
+            // Update loading text and play button
+            const loadingText = videoContainer.querySelector('.loading-text');
+            if (loadingText) loadingText.style.display = 'none';
+
+            const playOverlay = videoContainer.querySelector('.play-overlay');
+
+            // Add event listeners
+            video.addEventListener('loadeddata', () => {
+                // Clear background image
+                videoContainer.style.backgroundImage = 'none';
+
+                // Try to play the video
+                video.play().catch(err => {
+                    if (playOverlay) playOverlay.classList.add('show-play');
+                });
+            });
+
+            video.addEventListener('error', () => {
+                // Keep the placeholder background on error
+                if (loadingText) {
+                    loadingText.textContent = 'Video failed to load';
+                    loadingText.style.display = 'block';
+                }
+                if (playOverlay) playOverlay.classList.add('show-play');
+            });
+
+            video.addEventListener('play', () => {
+                if (playOverlay) playOverlay.classList.remove('show-play');
+            });
+
+            video.addEventListener('pause', () => {
+                if (playOverlay) playOverlay.classList.add('show-play');
+            });
+
+            // Add click handler to the container
+            videoContainer.addEventListener('click', () => {
+                if (video.paused) {
+                    video.play().catch(err => console.error('Play error:', err));
+                } else {
+                    video.pause();
+                }
+            });
+        }
+
+        // Initialize logo image
+        function initializeLogo(placeholder) {
+            const logoUrl = placeholder.dataset.logoUrl;
+            const logoAlt = placeholder.dataset.logoAlt || 'Logo';
+
+            if (!logoUrl) return;
+
+            const logoImg = document.createElement('img');
+            logoImg.className = 'product-logo';
+            logoImg.src = logoUrl;
+            logoImg.alt = logoAlt;
+            logoImg.width = 24;
+            logoImg.height = 24;
+
+            // Handle error for any image format
+            logoImg.onerror = function() {
+                // Keep the placeholder on error
+                console.warn('Failed to load logo:', logoUrl);
+            };
+
+            // Replace placeholder on successful load
+            logoImg.onload = function() {
+                const container = placeholder.parentElement;
+                if (container) {
+                    container.replaceChild(logoImg, placeholder);
+                }
+            };
+        }
+
+        // Fallback for browsers without IntersectionObserver
+        function initializeAllVisibleCards() {
+            document.querySelectorAll('.animation-card[data-needs-init="true"]').forEach(card => {
+                // Initialize video
+                const videoPlaceholder = card.querySelector('.video-placeholder');
+                if (videoPlaceholder && videoPlaceholder.dataset.videoUrl) {
+                    initializeVideo(card, videoPlaceholder.dataset.videoUrl);
+                }
+
+                // Initialize logo
+                const logoPlaceholder = card.querySelector('.product-logo-placeholder');
+                if (logoPlaceholder && logoPlaceholder.dataset.logoUrl) {
+                    initializeLogo(logoPlaceholder);
+                }
+
+                // Mark as initialized
+                card.dataset.needsInit = 'false';
+            });
         }
 
         // Get currently visible animations based on pagination and filters
@@ -1148,6 +2098,13 @@
                 return matchesPlatform && matchesInteraction && matchesSearch;
             });
 
+            // If the total count of filtered animations is less than total items from API 
+            // and we have more pages to load, set hasMoreItems to true
+            const filteredCount = filteredAnimations.length;
+            if (filteredCount < paginationState.totalItems && filteredCount === allAnimations.length) {
+                paginationState.hasMoreItems = true;
+            }
+
             // Apply pagination
             const startIndex = 0;
             const endIndex = paginationState.currentPage * paginationState.itemsPerPage;
@@ -1159,9 +2116,9 @@
         }
 
         // Load more animations
-        function loadMoreAnimations() {
-            if (paginationState.isLoading) {
-                return; // Prevent multiple simultaneous loads
+        async function loadMoreAnimations() {
+            if (paginationState.isLoading || !paginationState.hasMoreItems) {
+                return; // Prevent multiple simultaneous loads or if no more items
             }
 
             paginationState.isLoading = true;
@@ -1170,214 +2127,252 @@
             // Show loading indicator
             const loadingMore = document.getElementById('loading-more');
             if (loadingMore) {
-                loadingMore.style.display = 'flex';
+                loadingMore.classList.add('visible');
             }
 
-            // Simulate network delay for smoother UX (optional, can be removed)
-            setTimeout(() => {
-                // Increment page
+            try {
+                // Increment page counters
                 paginationState.currentPage++;
+                paginationState.apiPage++;
 
-                // Get animations for current page
-                const currentAnimations = getVisibleAnimations();
-                const grid = document.getElementById('animation-grid');
+                // Always try to fetch more from the API with true lazy loading
+                console.log(`Fetching page ${paginationState.apiPage} from API`);
+                let newAnimations = [];
 
-                if (grid) {
-                    // Get current animation IDs to avoid duplicates
-                    const existingIds = Array.from(grid.querySelectorAll('.animation-card'))
-                        .map(card => card.dataset.animationId);
+                try {
+                    // Fetch next page from API
+                    const apiUrl = `https://www.ripplix.com/wp-json/ripplix/v1/animations?per_page=${paginationState.itemsPerPage}&page=${paginationState.apiPage}`;
+                    const response = await fetch(apiUrl);
 
-                    // Create and add new cards for animations not already in the grid
-                    currentAnimations.forEach(animation => {
-                        if (!existingIds.includes(animation.id.toString())) {
-                            const card = createAnimationCard(animation);
-                            grid.appendChild(card);
+                    if (!response.ok) {
+                        throw new Error(`API error: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+
+                    if (data && Array.isArray(data.animations)) {
+                        newAnimations = data.animations;
+
+                        // Add to our existing animations
+                        for (const animation of newAnimations) {
+                            // Check if we already have this animation (avoid duplicates)
+                            if (!allAnimations.some(a => a.id === animation.id)) {
+                                allAnimations.push(animation);
+                            }
                         }
-                    });
 
-                    // Reinitialize lazy loading for new cards
-                    initLazyLoading();
+                        console.log(`Added ${newAnimations.length} new animations from API`);
+
+                        // Check if we've reached the end
+                        if (newAnimations.length < paginationState.itemsPerPage) {
+                            paginationState.hasMoreItems = false;
+                            console.log("Reached the end of API data");
+                        }
+                    } else {
+                        console.warn("Invalid API response format");
+                        paginationState.hasMoreItems = false;
+                    }
+                } catch (error) {
+                    console.error("Error fetching more animations:", error);
+                    // Don't mark as no more items to allow retry
                 }
 
-                // Hide loading indicator
-                if (loadingMore) {
-                    loadingMore.style.display = 'none';
+                // Special case: If we didn't get any new animations but expected some,
+                // this could be a filter issue - try one more time with the next page
+                if (newAnimations.length === 0 && paginationState.hasMoreItems) {
+                    paginationState.apiPage++;
+                    try {
+                        console.log(`Retrying with next page ${paginationState.apiPage}`);
+                        const retryUrl = `https://www.ripplix.com/wp-json/ripplix/v1/animations?per_page=${paginationState.itemsPerPage}&page=${paginationState.apiPage}`;
+                        const retryResponse = await fetch(retryUrl);
+
+                        if (retryResponse.ok) {
+                            const retryData = await retryResponse.json();
+
+                            if (retryData && Array.isArray(retryData.animations)) {
+                                newAnimations = retryData.animations;
+
+                                // Add to our existing animations
+                                for (const animation of newAnimations) {
+                                    if (!allAnimations.some(a => a.id === animation.id)) {
+                                        allAnimations.push(animation);
+                                    }
+                                }
+
+                                console.log(`Added ${newAnimations.length} new animations from API (retry)`);
+
+                                if (newAnimations.length < paginationState.itemsPerPage) {
+                                    paginationState.hasMoreItems = false;
+                                }
+                            }
+                        }
+                    } catch (retryError) {
+                        console.error("Error in retry fetch:", retryError);
+                    }
                 }
 
-                paginationState.isLoading = false;
+                // After getting new data, update the grid with new animations
+                await updateGridWithNewAnimations();
 
-                // Check if we've loaded all animations
-                const filteredCount = allAnimations.filter(animation => {
-                    const matchesPlatform = !activeFilters.platform || animation.platform === activeFilters.platform;
-                    const matchesInteraction = !activeFilters.interaction || animation.interaction === activeFilters.interaction;
-                    const searchInput = document.getElementById('search-input');
-                    const query = searchInput ? searchInput.value.toLowerCase() : '';
-                    const matchesSearch = !query ||
-                        animation.title.toLowerCase().includes(query) ||
-                        (animation.platform && animation.platform.toLowerCase().includes(query)) ||
-                        (animation.interaction && animation.interaction.toLowerCase().includes(query)) ||
-                        (animation.description && animation.description.toLowerCase().includes(query));
-                    return matchesPlatform && matchesInteraction && matchesSearch;
-                }).length;
+            } catch (error) {
+                console.error("Error in loadMoreAnimations:", error);
+            } finally {
+                // Hide loading indicator with a slight delay for smoother UX
+                setTimeout(() => {
+                    if (loadingMore) {
+                        loadingMore.classList.remove('visible');
+                    }
 
-                console.log(`Loaded ${grid.querySelectorAll('.animation-card').length} of ${filteredCount} animations`);
-            }, 300);
+                    paginationState.isLoading = false;
+
+                    // Update the sentinel position
+                    positionLoadMoreSentinel();
+                }, 300);
+            }
+        }
+
+        // Update grid with newly loaded animations
+        async function updateGridWithNewAnimations() {
+            // Get animations visible after applying filters
+            const visibleAnimations = getVisibleAnimations();
+            const grid = document.getElementById('animation-grid');
+
+            if (!grid) return;
+
+            // Get current animation IDs to avoid duplicates
+            const existingIds = Array.from(grid.querySelectorAll('.animation-card'))
+                .map(card => card.getAttribute('data-id'));
+
+            // Create and add new cards for animations not already in the grid
+            let newCardsAdded = 0;
+
+            // Add a slight delay between each card for smoother rendering
+            for (const animation of visibleAnimations) {
+                if (!existingIds.includes(String(animation.id))) {
+                    const card = createAnimationCard(animation);
+                    if (card) {
+                        grid.appendChild(card);
+                        newCardsAdded++;
+
+                        // Add a small delay every few cards to prevent UI freezing
+                        if (newCardsAdded % 4 === 0) {
+                            await new Promise(resolve => setTimeout(resolve, 10));
+                        }
+                    }
+                }
+            }
+
+            console.log(`Added ${newCardsAdded} new animation cards to the grid`);
+
+            // Initialize lazy loading for new cards
+            initLazyLoading();
+
+            // Update counts
+            updateAnimationCount(grid.querySelectorAll('.animation-card').length);
+
+            // If we didn't add any new cards but should have more, try to load more
+            if (newCardsAdded === 0 && paginationState.hasMoreItems) {
+                console.log("No new cards added but more items expected, will try again on next scroll");
+            }
+
+            return newCardsAdded;
         }
 
         // Set up scroll listener for pagination
         function setupScrollListener() {
-            console.log("Setting up scroll listener for pagination");
+            console.log("Setting up scroll listener for pagination using IntersectionObserver");
 
-            // Function to check scroll position and load more if needed
-            function checkScrollPosition() {
-                if (paginationState.isLoading) return;
+            // Create the sentinel element if it doesn't exist
+            createLoadMoreSentinel();
 
-                // Check if we're near bottom of the page
-                const scrollPosition = window.scrollY + window.innerHeight;
-                const totalHeight = document.body.offsetHeight;
-                const threshold = 200; // Load more when within 200px of bottom
+            // If we already have an observer, disconnect it first
+            if (window.loadMoreObserver) {
+                window.loadMoreObserver.disconnect();
+            }
 
-                if (scrollPosition + threshold >= totalHeight) {
-                    console.log("Near bottom of page, loading more animations");
-                    loadMoreAnimations();
+            // Set up IntersectionObserver to detect when sentinel is visible
+            const observerOptions = {
+                root: null, // Use viewport as root
+                rootMargin: '300px 0px', // Start loading when sentinel is within 300px of viewport
+                threshold: 0.1 // Trigger when at least 10% visible
+            };
+
+            try {
+                // Create a new observer and keep a reference to it
+                window.loadMoreObserver = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting && !paginationState.isLoading) {
+                            console.log('Load more sentinel is visible, loading more animations');
+
+                            // Show a small delay to prevent too rapid loading
+                            setTimeout(() => {
+                                loadMoreAnimations();
+                            }, 100);
+                        }
+                    });
+                }, observerOptions);
+
+                // Start observing the sentinel element
+                const sentinel = document.getElementById('load-more-sentinel');
+                if (sentinel) {
+                    window.loadMoreObserver.observe(sentinel);
+                    console.log('Observing load more sentinel');
+                }
+
+                // Also setup fallback scroll detection for browsers that don't support IntersectionObserver
+                if (!('IntersectionObserver' in window)) {
+                    setupFallbackScrollListener();
+                }
+            } catch (error) {
+                console.error('Error setting up IntersectionObserver:', error);
+                // Fall back to traditional scroll listener
+                setupFallbackScrollListener();
+            }
+        }
+
+        // Position the load more sentinel element
+        function positionLoadMoreSentinel() {
+            const sentinel = document.getElementById('load-more-sentinel');
+            if (!sentinel) return;
+
+            // Position at the bottom of the grid
+            const grid = document.getElementById('animation-grid');
+            if (!grid || !grid.lastElementChild) return;
+
+            // Make sure the sentinel is appended after the last grid item
+            const mainContent = document.querySelector('.main-content');
+            if (mainContent) {
+                // Position it right after the grid
+                mainContent.appendChild(sentinel);
+
+                // Make sure the observer is still watching it
+                if (window.loadMoreObserver) {
+                    window.loadMoreObserver.observe(sentinel);
                 }
             }
+        }
 
-            // Throttle scroll event to avoid performance issues
-            let scrollTimeout;
+        // Set up scroll direction detection for showing/hiding search bar
+        function setupScrollDirectionDetection() {
+            const searchFilters = document.querySelector('.search-and-filters');
+            let lastScrollTop = 0;
+
             window.addEventListener('scroll', () => {
-                if (scrollTimeout) clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(checkScrollPosition, 100);
-            });
+                const currentScrollTop = window.scrollY || document.documentElement.scrollTop;
 
-            // Also check on resize
-            window.addEventListener('resize', () => {
-                if (scrollTimeout) clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(checkScrollPosition, 100);
-            });
+                // Determine scroll direction
+                if (currentScrollTop > lastScrollTop) {
+                    // Scrolling down - hide search bar
+                    searchFilters.style.transform = 'translateY(-100%)';
+                } else {
+                    // Scrolling up - show search bar
+                    searchFilters.style.transform = 'translateY(0)';
+                }
 
-            // Initial check in case the content doesn't fill the page
-            setTimeout(checkScrollPosition, 500);
-        }
-
-        // Load video for container
-        function loadVideoForContainer(container) {
-            // Check if video is already loaded
-            if (container.querySelector('video')) {
-                const existingVideo = container.querySelector('video');
-                existingVideo.play().catch(err => {
-                    console.error(`Failed to play video: ${err}`);
-                    container.querySelector('.play-overlay').classList.add('show-play');
-                });
-                return;
-            }
-
-            const videoUrl = container.dataset.videoUrl;
-            const animationId = container.dataset.animationId;
-
-            if (!videoUrl) {
-                console.error(`No video URL for animation ID: ${animationId}`);
-                return;
-            }
-
-            console.log(`Loading video for animation ID: ${animationId}, URL: ${videoUrl}`);
-
-            // Create video element
-            const video = document.createElement('video');
-            video.className = 'animation-video';
-            video.src = videoUrl;
-            video.muted = true;
-            video.loop = true;
-            video.playsInline = true;
-            video.setAttribute('playsinline', '');
-
-            // Remove loading text when video loads
-            video.onloadeddata = () => {
-                const loadingText = container.querySelector('.loading-text');
-                if (loadingText) loadingText.remove();
-                video.play().catch(err => {
-                    console.error(`Failed to autoplay video for animation ID: ${animationId}`, err);
-                    container.querySelector('.play-overlay').classList.add('show-play');
-                });
-            };
-
-            // Show play button when video is paused
-            video.onpause = () => {
-                container.querySelector('.play-overlay').classList.add('show-play');
-            };
-
-            // Hide play button when video is playing
-            video.onplay = () => {
-                container.querySelector('.play-overlay').classList.remove('show-play');
-            };
-
-            video.onerror = () => {
-                console.error(`Error loading video for animation ID: ${animationId}`);
-                container.querySelector('.loading-text').textContent = 'Error loading video';
-                container.querySelector('.play-overlay').classList.add('show-play');
-            };
-
-            container.appendChild(video);
-        }
-
-        // Initialize videos with IntersectionObserver for lazy loading
-        function initVideos() {
-            const options = {
-                root: null,
-                rootMargin: '0px',
-                threshold: 0.1
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const container = entry.target;
-                        loadVideoForContainer(container);
-                        observer.unobserve(container);
-                    }
-                });
-            }, options);
-
-            // Observe all video containers
-            document.querySelectorAll('.video-container').forEach(container => {
-                observer.observe(container);
-            });
-        }
-
-        // Initialize lazy loading for videos
-        function initLazyLoading() {
-            console.log("Initializing lazy loading for videos");
-
-            // Create IntersectionObserver
-            const options = {
-                root: null, // use viewport
-                rootMargin: '100px', // load when within 100px of viewport
-                threshold: 0.1 // trigger when at least 10% visible
-            };
-
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        const container = entry.target;
-                        loadVideoForContainer(container);
-
-                        // Stop observing this container once video is loaded
-                        observer.unobserve(container);
-                    }
-                });
-            }, options);
-
-            // Observe all video containers
-            const containers = document.querySelectorAll('.video-container');
-            containers.forEach(container => {
-                observer.observe(container);
-            });
-
-            // Pre-load the first few videos immediately for better UX
-            const preloadCount = Math.min(4, containers.length);
-            for (let i = 0; i < preloadCount; i++) {
-                loadVideoForContainer(containers[i]);
-            }
+                lastScrollTop = currentScrollTop;
+            }, {
+                passive: true
+            }); // For better performance
         }
 
         // Open preview modal
@@ -1498,30 +2493,103 @@
 
         // Add to Figma
         function addToFigma(animation) {
-            console.log("Adding to Figma:", animation);
+            console.log("Adding animation to Figma:", animation);
 
-            // Create a clean copy of the animation with consistent properties
-            const cleanAnimation = {
-                id: animation.id,
-                title: animation.title,
-                platform: animation.platform || 'Web App',
-                interaction: Array.isArray(animation.interaction) ?
-                    animation.interaction[0] : animation.interaction,
-                description: animation.description || `${animation.title} animation`,
-                url: animation.url || '',
-                video_url: animation.video_url,
-                product: animation.product || 'Ripplix',
-                industry: animation.industry || '',
-                product_logo: animation.product_logo || ''
-            };
+            if (!animation || !animation.id) {
+                console.error("Invalid animation data");
+                return;
+            }
 
-            // Send message to plugin code
-            parent.postMessage({
-                pluginMessage: {
-                    type: 'add-animation',
-                    animation: cleanAnimation
+            try {
+                // Normalize video URL
+                let videoUrl = animation.video_url || animation.animation_url || '';
+                if (videoUrl.includes('cloudflarestream')) {
+                    videoUrl = fixCloudflareUrl(videoUrl);
                 }
-            }, '*');
+
+                // Prioritize product_logo over logo to match the product branding
+                const logoUrl = animation.product_logo || animation.logo || '';
+
+                // Normalize data for Figma
+                const dataForFigma = {
+                    id: animation.id,
+                    title: animation.title || 'Untitled Animation',
+                    url: animation.url || '',
+                    video_url: videoUrl,
+                    product: animation.product || 'Ripplix',
+                    product_logo: logoUrl, // Explicitly set product_logo
+                    logo: logoUrl, // Keep logo for backward compatibility
+                    description: animation.description || ''
+                };
+
+                // Log the data we're sending
+                console.log("Sending data to Figma:", dataForFigma);
+
+                // Send data to Figma
+                parent.postMessage({
+                    pluginMessage: {
+                        type: 'add-animation',
+                        animation: dataForFigma
+                    }
+                }, '*');
+
+                // Show success feedback
+                showToast(`Added "${dataForFigma.title}" to Figma`);
+
+            } catch (error) {
+                console.error("Error adding animation to Figma:", error);
+                showToast("Error adding animation to Figma", true);
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, isError = false) {
+            // Create toast container if it doesn't exist
+            let toastContainer = document.getElementById('toast-container');
+            if (!toastContainer) {
+                toastContainer = document.createElement('div');
+                toastContainer.id = 'toast-container';
+                toastContainer.style.position = 'fixed';
+                toastContainer.style.bottom = '20px';
+                toastContainer.style.left = '50%';
+                toastContainer.style.transform = 'translateX(-50%)';
+                toastContainer.style.zIndex = '9999';
+                document.body.appendChild(toastContainer);
+            }
+
+            // Create toast element
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.style.backgroundColor = isError ? 'var(--error-color)' : 'var(--success-color)';
+            toast.style.color = 'white';
+            toast.style.padding = '12px 20px';
+            toast.style.borderRadius = '6px';
+            toast.style.margin = '8px';
+            toast.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.2)';
+            toast.style.textAlign = 'center';
+            toast.style.minWidth = '200px';
+            toast.style.maxWidth = '300px';
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s ease';
+            toast.textContent = message;
+
+            // Add toast to container
+            toastContainer.appendChild(toast);
+
+            // Show toast
+            setTimeout(() => {
+                toast.style.opacity = '1';
+            }, 10);
+
+            // Hide toast after 3 seconds
+            setTimeout(() => {
+                toast.style.opacity = '0';
+
+                // Remove toast from DOM after fade out
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
         }
 
         // Set up event handlers
@@ -1595,6 +2663,9 @@
                     closePreview();
                 }
             });
+
+            // Set up scroll direction detection for search bar
+            setupScrollDirectionDetection();
         }
 
         // Apply all filters and search
@@ -1609,25 +2680,72 @@
             // Clear the grid
             grid.innerHTML = '';
 
-            // Add the first page of filtered animations
-            const visibleAnimations = getVisibleAnimations();
+            // Show loading indicator while filtering
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'loading-container';
+            loadingIndicator.style.padding = '20px';
+            loadingIndicator.style.textAlign = 'center';
 
-            // Show the first page of filtered animations
-            visibleAnimations.forEach(animation => {
-                const card = createAnimationCard(animation);
-                grid.appendChild(card);
-            });
+            loadingIndicator.innerHTML = `
+                <div class="loading-dots">
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                    <div class="loading-dot"></div>
+                </div>
+                <p style="margin-top: 16px; color: var(--light-text);">Filtering animations...</p>
+            `;
 
-            // Initialize lazy loading for the new cards
-            initLazyLoading();
+            grid.appendChild(loadingIndicator);
 
-            // Check if we need to show "no results" message
-            if (visibleAnimations.length === 0) {
-                const noResults = document.createElement('div');
-                noResults.className = 'loading';
-                noResults.textContent = 'No animations found matching your filters.';
-                grid.appendChild(noResults);
-            }
+            // Use setTimeout to allow the loading indicator to render
+            setTimeout(() => {
+                // Remove loading indicator
+                grid.removeChild(loadingIndicator);
+
+                // Get visible animations based on current filters
+                const visibleAnimations = getVisibleAnimations();
+
+                // Show filtered animations
+                if (visibleAnimations.length > 0) {
+                    visibleAnimations.forEach(animation => {
+                        const card = createAnimationCard(animation);
+                        if (card) {
+                            grid.appendChild(card);
+                        }
+                    });
+
+                    // Initialize lazy loading for the new cards
+                    initLazyLoading();
+
+                    // Update the animation count display
+                    updateAnimationCount(visibleAnimations.length);
+
+                    // Check if we need to load more data from API to fulfill this filter
+                    if (visibleAnimations.length < paginationState.itemsPerPage && paginationState.hasMoreItems) {
+                        // Need more data to fill the grid
+                        setTimeout(() => {
+                            loadMoreAnimations();
+                        }, 200);
+                    }
+                } else {
+                    // Show no results message
+                    const noResults = document.createElement('div');
+                    noResults.className = 'no-results';
+                    noResults.innerHTML = `
+                        <div style="margin: 40px 0; text-align: center;">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M15.5 14.5L19 18M10.5 18C6.36 18 3 14.64 3 10.5C3 6.36 6.36 3 10.5 3C14.64 3 18 6.36 18 10.5C18 12.6075 17.1277 14.5163 15.7663 15.9246C14.4371 17.3006 12.5661 18 10.5 18Z" stroke="#999" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <p style="margin-top: 16px; color: var(--text-color);">No animations match your search.</p>
+                            <p style="color: var(--light-text);">Try different filters or search terms.</p>
+                        </div>
+                    `;
+                    grid.appendChild(noResults);
+                }
+
+                // Reposition the sentinel for infinite scrolling
+                positionLoadMoreSentinel();
+            }, 10);
         }
 
         // Handle search
@@ -1688,6 +2806,457 @@
             } catch (_) {
                 return false;
             }
+        }
+
+        // Load initial animations (either from API or fallback)
+        async function loadAnimations() {
+            try {
+                // Reset animation arrays
+                allAnimations = [];
+                animationsData = [];
+
+                // Try to fetch from API first
+                console.log("Fetching initial animations from API (true lazy loading)...");
+
+                // Show loading state with modern indicator
+                const grid = document.getElementById('animation-grid');
+                if (grid) {
+                    grid.innerHTML = `
+                        <div class="loading-container" style="padding: 40px; text-align: center;">
+                            <div class="loading-dots">
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                                <div class="loading-dot"></div>
+                            </div>
+                            <p style="margin-top: 16px; color: var(--light-text);">Loading animations...</p>
+                        </div>
+                    `;
+                } else {
+                    console.error("Error: animation-grid element not found!");
+
+                    // Try to recreate the grid container
+                    const container = document.getElementById('animations-container');
+                    if (container) {
+                        console.log("Recreating animation grid container");
+                        const newGrid = document.createElement('div');
+                        newGrid.id = 'animation-grid';
+                        newGrid.className = 'animation-grid';
+                        container.appendChild(newGrid);
+                    } else {
+                        console.error("Error: animations-container element not found!");
+
+                        // Add debug info to the body
+                        const debugInfo = document.createElement('div');
+                        debugInfo.style.padding = '20px';
+                        debugInfo.style.color = 'red';
+                        debugInfo.innerHTML = 'ERROR: Required containers not found. Please reload the plugin.';
+                        document.body.appendChild(debugInfo);
+                    }
+                }
+
+                // Reset pagination state for fresh start
+                paginationState.currentPage = 1;
+                paginationState.apiPage = 1;
+                paginationState.hasMoreItems = true;
+                paginationState.isLoading = true;
+                paginationState.totalItems = 0;
+
+                // Fetch only the first page of animations from API (with limit=12)
+                const apiUrl = `https://www.ripplix.com/wp-json/ripplix/v1/animations?per_page=${paginationState.itemsPerPage}&page=${paginationState.apiPage}`;
+                console.log(`Fetching first page: ${apiUrl}`);
+
+                const response = await fetch(apiUrl);
+
+                // Check if API request was successful
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                // Get total count from headers if available
+                const totalItems = response.headers.get('X-WP-Total');
+                if (totalItems) {
+                    paginationState.totalItems = parseInt(totalItems, 10);
+                    console.log(`Total animations available: ${paginationState.totalItems}`);
+
+                    // Immediately update the count display
+                    updateTotalCount();
+                }
+
+                // Parse API response
+                const data = await response.json();
+                console.log("API response data structure:", Object.keys(data));
+
+                // Handle different API response formats
+                let animations = [];
+
+                // Case 1: API returns { animations: [...] }
+                if (data && data.animations && Array.isArray(data.animations)) {
+                    console.log("API returned data.animations array format");
+                    animations = data.animations;
+                }
+                // Case 2: API returns an array directly
+                else if (data && Array.isArray(data)) {
+                    console.log("API returned direct array format");
+                    animations = data;
+                }
+                // Case 3: Invalid format
+                else {
+                    console.warn("Invalid API response format:", data);
+                    console.log("Using fallback data instead");
+                    initWithFallbackData();
+                    return;
+                }
+
+                if (animations.length === 0) {
+                    console.warn("API returned empty animations array");
+                    initWithFallbackData();
+                    return;
+                }
+
+                console.log(`API returned ${animations.length} animations`);
+                console.log("Sample animation:", animations[0]);
+
+                // Process animations to standardize format
+                const originalAnimations = animations;
+                console.log("Processing API data with", originalAnimations.length, "animations");
+
+                // Filter out animations with missing essential data
+                const validAnimations = originalAnimations.filter(animation => {
+                    return animation && animation.id && animation.title &&
+                        (animation.video_url || animation.animation_url);
+                });
+
+                console.log(`Valid animations (with ID, title, and URL): ${validAnimations.length}`);
+
+                // Process animations to standardize format
+                const processedAnimations = validAnimations.map(animation => {
+                    // Make sure URL is properly formatted
+                    let videoUrl = animation.video_url || animation.animation_url || '';
+                    if (videoUrl && videoUrl.includes('cloudflarestream')) {
+                        videoUrl = fixCloudflareUrl(videoUrl);
+                    }
+
+                    // Standardize the animation object format
+                    return {
+                        id: animation.id.toString(),
+                        title: animation.title || 'Untitled Animation',
+                        platform: animation.platform || 'Web App',
+                        interaction: Array.isArray(animation.interaction) ?
+                            animation.interaction :
+                            (typeof animation.interaction === 'string' ? [animation.interaction] : []),
+                        url: animation.url || '',
+                        video_url: videoUrl,
+                        product: animation.product || 'Ripplix',
+                        industry: animation.industry || '',
+                        product_logo: animation.product_logo || '',
+                        logo: animation.logo || animation.product_logo || ''
+                    };
+                });
+
+                if (processedAnimations.length === 0) {
+                    console.warn("No valid animations after processing, using fallback data");
+                    initWithFallbackData();
+                    return;
+                }
+
+                // Store just the first page of processed animations data
+                allAnimations = processedAnimations;
+                animationsData = [...allAnimations];
+                console.log(`Loaded initial ${allAnimations.length} animations from API (of ${paginationState.totalItems} total)`);
+
+                // Set flag to indicate more items are available
+                paginationState.hasMoreItems = paginationState.totalItems > allAnimations.length;
+
+                // Remove loading screen after initial animations load
+                const loadingScreen = document.getElementById('fullscreen-loading');
+                if (loadingScreen) {
+                    loadingScreen.classList.add('hidden');
+                    // Allow scrolling after a delay to ensure animation completes
+                    setTimeout(() => {
+                        document.body.style.overflow = '';
+                    }, 600);
+                }
+
+                // Check if animation container exists
+                const container = document.getElementById('animations-container');
+                if (!container) {
+                    console.error("animations-container not found after API fetch");
+
+                    // Try to recreate container
+                    const mainContent = document.querySelector('.main-content');
+                    if (mainContent) {
+                        const newContainer = document.createElement('div');
+                        newContainer.id = 'animations-container';
+                        mainContent.appendChild(newContainer);
+                        console.log("Recreated animations-container");
+                    }
+                }
+
+                // Create grid with the processed animations
+                console.log("Creating animation grid with", allAnimations.length, "animations");
+                createAnimationGrid(allAnimations);
+
+                // Set up event handlers
+                setupEventHandlers();
+
+                // Make sure count is updated
+                updateTotalCount();
+
+                // Create loading indicator at the bottom of the grid for infinite scrolling
+                createLoadMoreIndicator();
+                positionLoadMoreSentinel();
+
+                // Now that initial load is complete, set up the observer for lazy loading more items
+                setupScrollListener();
+
+            } catch (error) {
+                console.error("Error loading animations from API:", error);
+                console.log("Using fallback data instead");
+
+                // Use fallback data if API fails
+                initWithFallbackData();
+
+                // Also hide loading screen if there was an error
+                const loadingScreen = document.getElementById('fullscreen-loading');
+                if (loadingScreen) {
+                    loadingScreen.classList.add('hidden');
+                    setTimeout(() => {
+                        document.body.style.overflow = '';
+                    }, 600);
+                }
+            } finally {
+                paginationState.isLoading = false;
+
+                // Ensure any loading indicators in the grid are removed
+                const loadingContainer = document.querySelector('.loading-container');
+                if (loadingContainer) {
+                    loadingContainer.style.display = 'none';
+                }
+
+                // Check if the grid has content, if not, show a message
+                const grid = document.getElementById('animation-grid');
+                if (grid && grid.children.length === 0) {
+                    console.warn("Grid is empty after loading!");
+                    grid.innerHTML = '<div class="no-results">No animations loaded. Please try refreshing.</div>';
+                }
+            }
+        }
+
+        // Create loading indicator at the bottom of the grid
+        function createLoadMoreIndicator() {
+            const mainContent = document.querySelector('.main-content');
+            if (!mainContent) return;
+
+            // Create or update the loading more indicator
+            let loadingMore = document.getElementById('loading-more');
+            if (!loadingMore) {
+                loadingMore = document.createElement('div');
+                loadingMore.id = 'loading-more';
+                loadingMore.className = 'loading-more';
+
+                // Create loading dots
+                const dotsContainer = document.createElement('div');
+                dotsContainer.className = 'loading-dots';
+
+                // Add three dots for animation
+                for (let i = 0; i < 3; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = 'loading-dot';
+                    dotsContainer.appendChild(dot);
+                }
+
+                // Add loading text
+                const loadingText = document.createElement('div');
+                loadingText.className = 'loading-text';
+                loadingText.textContent = 'Loading more animations...';
+
+                // Assemble the indicator
+                loadingMore.appendChild(dotsContainer);
+                loadingMore.appendChild(loadingText);
+
+                mainContent.appendChild(loadingMore);
+            }
+
+            // Create a sentinel element for IntersectionObserver
+            let sentinel = document.getElementById('load-more-sentinel');
+            if (!sentinel) {
+                sentinel = document.createElement('div');
+                sentinel.id = 'load-more-sentinel';
+                sentinel.style.height = '20px';
+                sentinel.style.width = '100%';
+                sentinel.style.visibility = 'hidden';
+                mainContent.appendChild(sentinel);
+            }
+        }
+
+        // Initialize with fallback data when API fails
+        function initWithFallbackData() {
+            console.log("Using fallback data");
+
+            // Use the fallback data
+            allAnimations = fallbackData.animations;
+            animationsData = [...allAnimations];
+
+            // Set pagination state for fallback data
+            paginationState.totalItems = fallbackData.animations.length;
+
+            // Create grid with the fallback animations
+            createAnimationGrid(allAnimations);
+
+            // Set up event handlers
+            setupEventHandlers();
+
+            // Update count display with fallback data
+            updateTotalCount();
+
+            // Remove loading screen
+            const loadingScreen = document.getElementById('fullscreen-loading');
+            if (loadingScreen) {
+                loadingScreen.classList.add('hidden');
+                setTimeout(() => {
+                    document.body.style.overflow = '';
+                }, 600);
+            }
+
+            // Create load more indicator (even though we won't have more with fallback)
+            createLoadMoreIndicator();
+            positionLoadMoreSentinel();
+
+            // Set up scroll listener for UI interactions
+            setupScrollListener();
+        }
+
+        // Initialize the UI with animations
+        function initAnimations() {
+            // Store clean copy for filtering
+            animationsData = [...allAnimations];
+
+            // Reset the grid
+            const grid = document.getElementById('animation-grid');
+            if (grid) {
+                // Clear the grid completely
+                grid.innerHTML = '';
+
+                // Add animations to the grid
+                displayAnimations();
+            }
+
+            // Remove any stray loading indicators
+            const loadingContainers = document.querySelectorAll('.loading-container');
+            loadingContainers.forEach(container => {
+                container.style.display = 'none';
+            });
+
+            // Set up event handlers
+            setupEventHandlers();
+
+            // Show total count
+            updateTotalCount();
+        }
+
+        // Display animations in the grid
+        function displayAnimations() {
+            // Get the grid
+            const grid = document.getElementById('animation-grid');
+            if (!grid) return;
+
+            // Reset pagination
+            paginationState.currentPage = 1;
+
+            // Clear the grid
+            grid.innerHTML = '';
+
+            // Get visible animations after filters
+            const visibleAnimations = getVisibleAnimations();
+
+            // Add each animation to the grid
+            if (visibleAnimations.length > 0) {
+                visibleAnimations.forEach(animation => {
+                    const card = createAnimationCard(animation);
+                    if (card) {
+                        grid.appendChild(card);
+                    }
+                });
+
+                // Initialize lazy loading for videos and images - performance optimized
+                initLazyLoading();
+
+                // Update the animation count display
+                updateAnimationCount(visibleAnimations.length);
+
+                // Ensure load more sentinel is positioned correctly
+                positionLoadMoreSentinel();
+
+                // Check if we need to load more
+                if (visibleAnimations.length < paginationState.itemsPerPage) {
+                    // We have fewer animations than a full page
+                    if (paginationState.hasMoreItems) {
+                        // Try to load more since we have fewer than a page
+                        setTimeout(loadMoreAnimations, 500);
+                    }
+                }
+            } else {
+                // Show no results message
+                grid.innerHTML = '<div class="no-results">No animations match your search. Try different filters or search terms.</div>';
+
+                // Hide load more sentinel
+                const sentinel = document.getElementById('load-more-sentinel');
+                if (sentinel) {
+                    sentinel.style.display = 'none';
+                }
+            }
+        }
+
+        // Create the sentinel element for infinite scrolling detection
+        function createLoadMoreSentinel() {
+            // Create or get the sentinel element
+            let sentinel = document.getElementById('load-more-sentinel');
+            if (!sentinel) {
+                sentinel = document.createElement('div');
+                sentinel.id = 'load-more-sentinel';
+                sentinel.style.height = '20px';
+                sentinel.style.width = '100%';
+                sentinel.style.margin = '20px 0';
+                sentinel.style.visibility = 'hidden';
+
+                // Add it to the DOM
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    mainContent.appendChild(sentinel);
+                }
+            }
+        }
+
+        // Fallback scroll listener for browsers without IntersectionObserver
+        function setupFallbackScrollListener() {
+            console.log("Using fallback scroll listener");
+
+            // Function to check scroll position and load more if needed
+            function checkScrollPosition() {
+                if (paginationState.isLoading || !paginationState.hasMoreItems) return;
+
+                // Get scroll position and document height
+                const scrollPosition = window.scrollY + window.innerHeight;
+                const totalHeight = document.body.scrollHeight;
+
+                // Load more when close to bottom
+                const threshold = 200; // px from bottom
+                if (scrollPosition + threshold >= totalHeight) {
+                    loadMoreAnimations();
+                }
+            }
+
+            // Throttle scroll event to avoid performance issues
+            let scrollTimeout;
+            window.addEventListener('scroll', () => {
+                if (scrollTimeout) clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(checkScrollPosition, 100);
+            }, {
+                passive: true
+            });
+
+            // Initial check after content is loaded
+            setTimeout(checkScrollPosition, 500);
         }
     </script>
 </body>
