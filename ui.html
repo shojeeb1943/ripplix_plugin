@@ -5,6 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ripplix - UI Animation Library</title>
+    <link rel="icon" type="image/svg+xml" href="https://www.ripplix.com/wp-content/uploads/2024/12/Logo-of-Ripplix-Retina.svg">
+    <!-- Fallback favicon for browsers that don't support SVG -->
+    <link rel="alternate icon" type="image/png" href="https://www.ripplix.com/wp-content/uploads/2024/12/favicon.png">
+    <link rel="shortcut icon" href="https://www.ripplix.com/wp-content/uploads/2024/12/favicon.ico">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -218,11 +222,23 @@
         .logo-container {
             display: flex;
             align-items: center;
+            margin-right: 1rem;
         }
         
         .logo {
-            height: 32px;
+            height: 24px;
             width: auto;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+        }
+        
+        .logo:hover {
+            transform: scale(1.05);
+            filter: brightness(1.1);
+        }
+        
+        .logo:active {
+            transform: scale(0.95);
         }
         
         .stats {
@@ -1110,6 +1126,12 @@
         // DOM ready handler
         document.addEventListener('DOMContentLoaded', function() {
             console.log("DOM loaded, initializing plugin");
+
+            // Ensure favicon is correctly displayed
+            ensureFavicon();
+
+            // Set up periodic check to maintain favicon and title
+            setInterval(maintainFaviconAndTitle, 2000);
 
             // Show main loading screen
             showLoadingScreen();
@@ -2057,41 +2079,47 @@
         function initLazyLoading() {
             // Use IntersectionObserver for better performance
             if ('IntersectionObserver' in window) {
-                const lazyLoadObserver = new IntersectionObserver((entries, observer) => {
-                    entries.forEach(entry => {
-                        if (entry.isIntersecting) {
-                            const card = entry.target;
+                // Create a new observer or use existing one
+                if (!window.lazyLoadObserver) {
+                    window.lazyLoadObserver = new IntersectionObserver((entries, observer) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                const card = entry.target;
 
-                            // Only initialize once
-                            if (card.dataset.needsInit === 'true') {
-                                // Initialize video
-                                const videoPlaceholder = card.querySelector('.video-placeholder');
-                                if (videoPlaceholder && videoPlaceholder.dataset.videoUrl) {
-                                    initializeVideo(card, videoPlaceholder.dataset.videoUrl);
+                                // Only initialize once
+                                if (card.dataset.needsInit === 'true') {
+                                    // Initialize video with a small delay to prevent UI jank
+                                    setTimeout(() => {
+                                        // Initialize video
+                                        const videoPlaceholder = card.querySelector('.video-placeholder');
+                                        if (videoPlaceholder && videoPlaceholder.dataset.videoUrl) {
+                                            initializeVideo(card, videoPlaceholder.dataset.videoUrl);
+                                        }
+
+                                        // Initialize logo
+                                        const logoPlaceholder = card.querySelector('.product-logo-placeholder');
+                                        if (logoPlaceholder && logoPlaceholder.dataset.logoUrl) {
+                                            initializeLogo(logoPlaceholder);
+                                        }
+
+                                        // Mark as initialized
+                                        card.dataset.needsInit = 'false';
+                                    }, 100);
                                 }
 
-                                // Initialize logo
-                                const logoPlaceholder = card.querySelector('.product-logo-placeholder');
-                                if (logoPlaceholder && logoPlaceholder.dataset.logoUrl) {
-                                    initializeLogo(logoPlaceholder);
-                                }
-
-                                // Mark as initialized
-                                card.dataset.needsInit = 'false';
+                                // Stop observing this card after it's initialized
+                                observer.unobserve(card);
                             }
-
-                            // Stop observing this card after it's initialized
-                            observer.unobserve(card);
-                        }
+                        });
+                    }, {
+                        rootMargin: '200px', // Increased margin to start loading earlier
+                        threshold: 0.1
                     });
-                }, {
-                    rootMargin: '100px', // Load when within 100px of viewport
-                    threshold: 0.1
-                });
+                }
 
-                // Observe all cards
+                // Observe all cards that need initialization
                 document.querySelectorAll('.animation-card[data-needs-init="true"]').forEach(card => {
-                    lazyLoadObserver.observe(card);
+                    window.lazyLoadObserver.observe(card);
                 });
             } else {
                 // Fallback for browsers without IntersectionObserver
@@ -2228,16 +2256,19 @@
             // Debug log for active filters
             console.log("Active filters:", JSON.stringify(activeFilters));
 
+            // Get search query once outside the loop for better performance
+            const searchInput = document.getElementById('search-input');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            // Check if any filter is active
+            const isFiltered = activeFilters.platform || activeFilters.interaction || query;
+
             // Apply filters first
             const filteredAnimations = allAnimations.filter(animation => {
-                // Debug log for individual animation (limit to avoid flooding console)
-                if (Math.random() < 0.05) { // Only log ~5% of animations for debugging
-                    console.log("Filtering animation:", animation.id, "Platform:", animation.platform, "Interactions:", animation.interaction);
-                }
-
                 // Check if animation matches all active filters
                 // Platform filter
                 const matchesPlatform = !activeFilters.platform || animation.platform === activeFilters.platform;
+                if (!matchesPlatform) return false;
 
                 // For interaction, check if it's in the array or matches the string
                 let matchesInteraction = true;
@@ -2258,52 +2289,57 @@
                         matchesInteraction = false;
                     }
                 }
-
-                // Get search query
-                const searchInput = document.getElementById('search-input');
-                const query = searchInput ? searchInput.value.toLowerCase() : '';
+                if (!matchesInteraction) return false;
 
                 // Check if animation matches search query
-                const matchesSearch = !query ||
-                    animation.title.toLowerCase().includes(query) ||
-                    (animation.platform && animation.platform.toLowerCase().includes(query)) ||
-                    (Array.isArray(animation.interaction) ?
-                        animation.interaction.some(i => i && i.toLowerCase().includes(query)) :
-                        (animation.interaction && animation.interaction.toLowerCase().includes(query))) ||
-                    (animation.description && animation.description.toLowerCase().includes(query));
+                if (query) {
+                    const matchesSearch =
+                        animation.title.toLowerCase().includes(query) ||
+                        (animation.platform && animation.platform.toLowerCase().includes(query)) ||
+                        (Array.isArray(animation.interaction) ?
+                            animation.interaction.some(i => i && i.toLowerCase().includes(query)) :
+                            (animation.interaction && animation.interaction.toLowerCase().includes(query))) ||
+                        (animation.description && animation.description.toLowerCase().includes(query));
 
-                // Debug log for potential filter mismatches (helps diagnose issues)
-                if (activeFilters.interaction && !matchesInteraction) {
-                    console.log("Filter mismatch for interaction:", animation.id,
-                        "Looking for:", activeFilters.interaction,
-                        "Has:", Array.isArray(animation.interaction) ? animation.interaction : [animation.interaction]);
+                    if (!matchesSearch) return false;
                 }
 
-                return matchesPlatform && matchesInteraction && matchesSearch;
+                // If we got here, all filters passed
+                return true;
             });
 
             // Log filtered results
             console.log(`Filtered animations: ${filteredAnimations.length} of ${allAnimations.length} total animations`);
 
-            // If the total count of filtered animations is less than total items from API 
-            // and we have more pages to load, set hasMoreItems to true
-            const filteredCount = filteredAnimations.length;
-            if (filteredCount < paginationState.totalItems && filteredCount === allAnimations.length) {
-                paginationState.hasMoreItems = true;
+            // If filters are applied, return all matching animations without pagination
+            if (isFiltered) {
+                console.log(`Showing all ${filteredAnimations.length} matching results without pagination`);
+                return filteredAnimations;
+            } else {
+                // Only apply pagination for full, unfiltered list
+                const startIndex = 0;
+                const endIndex = paginationState.currentPage * paginationState.itemsPerPage;
+                const visibleAnimations = filteredAnimations.slice(startIndex, endIndex);
+                console.log(`Showing ${visibleAnimations.length} of ${filteredAnimations.length} total animations with pagination`);
+                return visibleAnimations;
             }
-
-            // Apply pagination
-            const startIndex = 0;
-            const endIndex = paginationState.currentPage * paginationState.itemsPerPage;
-
-            const visibleAnimations = filteredAnimations.slice(startIndex, endIndex);
-            console.log(`Visible animations: ${visibleAnimations.length} of ${filteredAnimations.length} filtered animations`);
-
-            return visibleAnimations;
         }
 
         // Load more animations
         async function loadMoreAnimations() {
+            // Get search query
+            const searchInput = document.getElementById('search-input');
+            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+            // Check if any filter is active
+            const isFiltered = activeFilters.platform || activeFilters.interaction || query;
+
+            // Don't load more if filters are applied - we already show all matching results
+            if (isFiltered) {
+                console.log("Not loading more animations while filters are applied");
+                return;
+            }
+
             if (paginationState.isLoading || !paginationState.hasMoreItems) {
                 return; // Prevent multiple simultaneous loads or if no more items
             }
@@ -2489,12 +2525,22 @@
                 window.loadMoreObserver = new IntersectionObserver((entries) => {
                     entries.forEach(entry => {
                         if (entry.isIntersecting && !paginationState.isLoading) {
-                            console.log('Load more sentinel is visible, loading more animations');
+                            // Get search query
+                            const searchInput = document.getElementById('search-input');
+                            const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
 
-                            // Show a small delay to prevent too rapid loading
-                            setTimeout(() => {
-                                loadMoreAnimations();
-                            }, 100);
+                            // Check if any filter is active
+                            const isFiltered = activeFilters.platform || activeFilters.interaction || query;
+
+                            // Only load more if no filters are applied
+                            if (!isFiltered) {
+                                console.log('Load more sentinel is visible, loading more animations');
+
+                                // Show a small delay to prevent too rapid loading
+                                setTimeout(() => {
+                                    loadMoreAnimations();
+                                }, 100);
+                            }
                         }
                     });
                 }, observerOptions);
@@ -2784,13 +2830,22 @@
             // Set up search
             const searchInput = document.getElementById('search-input');
             if (searchInput) {
-                searchInput.addEventListener('input', handleSearch);
+                // Use debounced search for input to prevent excessive filtering during typing
+                searchInput.addEventListener('input', debounce(handleSearch, 300));
             }
 
             // Set up search button
             const searchButton = document.querySelector('.search-button');
             if (searchButton) {
+                // Button click should search immediately
                 searchButton.addEventListener('click', handleSearch);
+            }
+
+            // Set up logo click handler
+            const logoElement = document.querySelector('.logo-container .logo');
+            if (logoElement) {
+                logoElement.addEventListener('click', resetToInitialState);
+                logoElement.style.cursor = 'pointer'; // Add pointer cursor to indicate it's clickable
             }
 
             // Set up platform dropdown
@@ -2933,12 +2988,21 @@
                 // Remove loading indicator
                 grid.removeChild(loadingIndicator);
 
+                // Get search query
+                const searchInput = document.getElementById('search-input');
+                const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+                // Check if any filter is active
+                const isFiltered = activeFilters.platform || activeFilters.interaction || query;
+
                 // Get visible animations based on current filters
                 const visibleAnimations = getVisibleAnimations();
 
+                // Track filtered animations count for later use
+                const filteredCount = visibleAnimations.length;
+
                 // Log if we are showing all animations or filtered results
-                const isShowingAll = !activeFilters.platform && !activeFilters.interaction;
-                console.log(`Showing ${isShowingAll ? 'all' : 'filtered'} animations:`, visibleAnimations.length);
+                console.log(`Showing ${isFiltered ? 'filtered' : 'all'} animations:`, visibleAnimations.length);
 
                 // Show filtered animations
                 if (visibleAnimations.length > 0) {
@@ -2955,12 +3019,30 @@
                     // Update the animation count display
                     updateAnimationCount(visibleAnimations.length);
 
-                    // Check if we need to load more data from API to fulfill this filter
-                    if (visibleAnimations.length < paginationState.itemsPerPage && paginationState.hasMoreItems) {
-                        // Need more data to fill the grid
-                        setTimeout(() => {
-                            loadMoreAnimations();
-                        }, 200);
+                    // Only use infinite scroll loading for unfiltered view
+                    if (!isFiltered) {
+                        // Check if we need to load more data from API to fulfill the grid
+                        if (visibleAnimations.length < paginationState.itemsPerPage &&
+                            paginationState.hasMoreItems) {
+
+                            console.log("Need more data to fill unfiltered grid, loading from API...");
+                            setTimeout(() => {
+                                loadMoreAnimations();
+                            }, 200);
+                        }
+
+                        // Show load more sentinel for infinite scrolling on unfiltered view
+                        const sentinel = document.getElementById('load-more-sentinel');
+                        if (sentinel) {
+                            sentinel.style.display = '';
+                            positionLoadMoreSentinel();
+                        }
+                    } else {
+                        // Hide load more sentinel when filtering - we show all results at once
+                        const sentinel = document.getElementById('load-more-sentinel');
+                        if (sentinel) {
+                            sentinel.style.display = 'none';
+                        }
                     }
                 } else {
                     // Show no results message
@@ -2976,10 +3058,13 @@
                         </div>
                     `;
                     grid.appendChild(noResults);
-                }
 
-                // Reposition the sentinel for infinite scrolling
-                positionLoadMoreSentinel();
+                    // Hide load more sentinel when no results
+                    const sentinel = document.getElementById('load-more-sentinel');
+                    if (sentinel) {
+                        sentinel.style.display = 'none';
+                    }
+                }
             }, 10);
         }
 
@@ -3004,7 +3089,7 @@
 
                 if (isFiltering) {
                     // Show that we're displaying filtered results
-                    countLabel.textContent = "Filtered Results";
+                    countLabel.textContent = "Matching Results";
 
                     // Show original count if available
                     if (originalCountEl) {
@@ -3026,6 +3111,19 @@
         // Handle search
         function handleSearch() {
             applyFilters();
+        }
+
+        // Debounce function to limit how often a function can be called
+        function debounce(func, wait) {
+            let timeout;
+            return function() {
+                const context = this;
+                const args = arguments;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    func.apply(context, args);
+                }, wait);
+            };
         }
 
         // Update interaction filters with API data
@@ -3429,6 +3527,59 @@
             updateTotalCount();
         }
 
+        // Ensure favicon is correctly rendered in iframe
+        function ensureFavicon() {
+            const faviconUrl = 'https://www.ripplix.com/wp-content/uploads/2024/12/Logo-of-Ripplix-Retina.svg';
+
+            // Check if favicon is working
+            const links = document.querySelectorAll('link[rel*="icon"]');
+            let faviconExists = false;
+
+            // Check if the favicon links exist
+            links.forEach(link => {
+                if (link.getAttribute('href') === faviconUrl) {
+                    faviconExists = true;
+                }
+            });
+
+            // If favicon doesn't exist or we're in an iframe, create dynamic favicon
+            if (!faviconExists || window !== window.parent) {
+                console.log('Creating dynamic favicon for iframe compatibility');
+
+                // Remove existing favicon links
+                links.forEach(link => link.remove());
+
+                // Create new favicon link
+                const link = document.createElement('link');
+                link.rel = 'icon';
+                link.type = 'image/svg+xml';
+                link.href = faviconUrl;
+                document.head.appendChild(link);
+
+                // Also set the document title to ensure it's correct in the iframe
+                document.title = 'Ripplix - UI Animation Library';
+            }
+
+            // Special handling for Figma plugin iframe
+            try {
+                // Check if we're in Figma's iframe environment
+                if (window.parent !== window && typeof parent.postMessage === 'function') {
+                    // Send message to parent frame with title and favicon information
+                    parent.postMessage({
+                        pluginMessage: {
+                            type: 'update-ui-metadata',
+                            title: 'Ripplix - UI Animation Library',
+                            favicon: faviconUrl
+                        }
+                    }, '*');
+
+                    console.log('Sent metadata update to Figma parent frame');
+                }
+            } catch (e) {
+                console.log('Error communicating with parent frame:', e);
+            }
+        }
+
         // Display animations in the grid
         function displayAnimations() {
             // Get the grid
@@ -3774,6 +3925,91 @@
                     }
                 });
             });
+        }
+
+        // Reset plugin to initial state
+        function resetToInitialState() {
+            console.log("Resetting plugin to initial state");
+
+            // Clear search input
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+
+            // Reset platform filter
+            const platformSelect = document.getElementById('platform-select');
+            if (platformSelect) {
+                platformSelect.value = '';
+            }
+
+            // Reset active filters
+            activeFilters = {
+                platform: null,
+                interaction: null
+            };
+
+            // Remove active class from all filter tags
+            document.querySelectorAll('.filter-tag').forEach(tag => {
+                tag.classList.remove('active');
+                // Reset all inline styles
+                tag.style.backgroundColor = '';
+                tag.style.color = '';
+                tag.style.borderColor = '';
+            });
+
+            // Reset pagination state
+            paginationState.currentPage = 1;
+
+            // Make sure the load more sentinel is visible
+            const sentinel = document.getElementById('load-more-sentinel');
+            if (sentinel) {
+                sentinel.style.display = '';
+            }
+
+            // Reset animations data
+            animationsData = [...allAnimations];
+
+            // Apply filters (with all filters cleared)
+            applyFilters();
+
+            // Scroll to top
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Maintain favicon and title in case they're overwritten by the iframe environment
+        function maintainFaviconAndTitle() {
+            const correctTitle = 'Ripplix - UI Animation Library';
+            const faviconUrl = 'https://www.ripplix.com/wp-content/uploads/2024/12/Logo-of-Ripplix-Retina.svg';
+
+            // Check and reset title if needed
+            if (document.title !== correctTitle) {
+                console.log('Resetting document title');
+                document.title = correctTitle;
+            }
+
+            // Check for favicon
+            let faviconExists = false;
+            const links = document.querySelectorAll('link[rel*="icon"]');
+
+            links.forEach(link => {
+                if (link.getAttribute('href') === faviconUrl) {
+                    faviconExists = true;
+                }
+            });
+
+            // If favicon is missing, add it back
+            if (!faviconExists) {
+                console.log('Restoring favicon');
+                const link = document.createElement('link');
+                link.rel = 'icon';
+                link.type = 'image/svg+xml';
+                link.href = faviconUrl;
+                document.head.appendChild(link);
+            }
         }
     </script>
 </body>
