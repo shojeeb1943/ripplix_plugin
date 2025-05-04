@@ -525,14 +525,21 @@
         }
         
         .filter-tag:hover {
-            background-color: #F2EDFF;
-            color: #3F2B87;
+            background-color: #FFFFFF !important;
+            color: #FFFFFF;
+            border-color: #EBEBEB !important;
+            border-radius: 10px;
         }
         
         .filter-tag.active {
-            background-color: var(--dropdown-hover-bg);
-            color: var(--dropdown-hover-text);
-            border-color: var(--dropdown-hover-bg);
+            background-color: #FFFFFF !important;
+            /* Darker purple for active state */
+            color: white;
+            /* White text for better contrast */
+            border-color: #EBEBEB !important;
+            border-radius: 10px;
+            /* box-shadow: 0 2px 4px rgba(63, 43, 135, 0.2); */
+            /* Light shadow for depth */
         }
         
         .animation-grid {
@@ -1626,50 +1633,13 @@
 
         // Function to update animation count display
         function updateAnimationCount(visibleCount) {
-            const countElement = document.getElementById('animation-count');
-            const countLabel = document.getElementById('count-label');
-
-            if (countElement && countLabel) {
-                // Get the total count from pagination state or all animations
-                const totalCount = paginationState.totalItems > 0 ? paginationState.totalItems : allAnimations.length;
-
-                // Format the count with K for thousands
-                let formattedCount;
-                if (totalCount >= 10000) {
-                    formattedCount = Math.floor(totalCount / 1000) + "K+";
-                } else if (totalCount >= 1000) {
-                    formattedCount = (totalCount / 1000).toFixed(1) + "K";
-                } else {
-                    formattedCount = totalCount;
-                }
-
-                // Update the count display
-                countElement.textContent = formattedCount;
-                countLabel.textContent = "Ref. Added";
-            }
+            updateFilterResultCount(visibleCount, allAnimations.length);
         }
 
         // Update total count display
         function updateTotalCount() {
             const totalCount = paginationState.totalItems > 0 ? paginationState.totalItems : allAnimations.length;
-            const countElement = document.getElementById('animation-count');
-            const countLabel = document.getElementById('count-label');
-
-            if (countElement && countLabel) {
-                // Format the count with K for thousands
-                let formattedCount;
-                if (totalCount >= 10000) {
-                    formattedCount = Math.floor(totalCount / 1000) + "K+";
-                } else if (totalCount >= 1000) {
-                    formattedCount = (totalCount / 1000).toFixed(1) + "K";
-                } else {
-                    formattedCount = totalCount;
-                }
-
-                // Update the count display
-                countElement.textContent = formattedCount;
-                countLabel.textContent = "Ref. Added";
-            }
+            updateFilterResultCount(totalCount, totalCount);
         }
 
         // Remove duplicate animations based on ID and title
@@ -2959,6 +2929,9 @@
                 // Get visible animations based on current filters
                 const visibleAnimations = getVisibleAnimations();
 
+                // Update animation count display with filtered results
+                updateFilterResultCount(visibleAnimations.length, allAnimations.length);
+
                 // Show filtered animations
                 if (visibleAnimations.length > 0) {
                     visibleAnimations.forEach(animation => {
@@ -2970,9 +2943,6 @@
 
                     // Initialize lazy loading for the new cards
                     initLazyLoading();
-
-                    // Update the animation count display
-                    updateAnimationCount(visibleAnimations.length);
 
                     // Check if we need to load more data from API to fulfill this filter
                     if (visibleAnimations.length < paginationState.itemsPerPage && paginationState.hasMoreItems) {
@@ -3000,6 +2970,46 @@
                 // Reposition the sentinel for infinite scrolling
                 positionLoadMoreSentinel();
             }, 10);
+        }
+
+        // Update count display to show filtered vs total results
+        function updateFilterResultCount(filteredCount, totalCount) {
+            const countElement = document.getElementById('animation-count');
+            const countLabel = document.getElementById('count-label');
+            const originalCountEl = document.getElementById('original-count');
+
+            if (countElement && countLabel) {
+                // Only format numbers if they're large
+                let formattedCount = filteredCount;
+                if (filteredCount >= 1000) {
+                    formattedCount = (filteredCount / 1000).toFixed(1) + "K";
+                }
+
+                // Update the count display
+                countElement.textContent = formattedCount;
+
+                // Check if we're filtering
+                const isFiltering = filteredCount < totalCount;
+
+                if (isFiltering) {
+                    // Show that we're displaying filtered results
+                    countLabel.textContent = "Filtered Results";
+
+                    // Show original count if available
+                    if (originalCountEl) {
+                        originalCountEl.textContent = `(of ${totalCount})`;
+                        originalCountEl.style.display = 'inline';
+                    }
+                } else {
+                    // Standard label when showing all results
+                    countLabel.textContent = "Animations";
+
+                    // Hide original count when not filtering
+                    if (originalCountEl) {
+                        originalCountEl.style.display = 'none';
+                    }
+                }
+            }
         }
 
         // Handle search
@@ -3705,25 +3715,24 @@
                     const filterValue = tag.getAttribute('data-value');
                     console.log(`Filter tag clicked: ${filterType}=${filterValue}`);
 
-                    // Toggle filter
-                    if (activeFilters[filterType] === filterValue) {
-                        // If already active, clear filter
-                        activeFilters[filterType] = null;
-                        console.log(`Cleared filter: ${filterType}`);
+                    // Check if this tag is already active
+                    const isActive = tag.classList.contains('active');
 
-                        // Reset style
-                        tag.classList.remove('active');
-                    } else {
-                        // Clear other filters of same type
-                        document.querySelectorAll(`.filter-tag[data-filter="${filterType}"]`).forEach(t => {
-                            t.classList.remove('active');
-                        });
+                    // First, deactivate all tags of this type
+                    document.querySelectorAll(`.filter-tag[data-filter="${filterType}"]`).forEach(t => {
+                        t.classList.remove('active');
+                    });
 
+                    // Clear the current filter value
+                    activeFilters[filterType] = null;
+
+                    // If the clicked tag wasn't already active, activate it
+                    if (!isActive) {
                         // Set new filter
                         activeFilters[filterType] = filterValue;
                         console.log(`Set filter: ${filterType}=${filterValue}`);
 
-                        // Update style
+                        // Update style to show active state
                         tag.classList.add('active');
 
                         // Ensure the clicked tag is visible by scrolling it into view
@@ -3732,6 +3741,8 @@
                             block: 'nearest',
                             inline: 'center'
                         });
+                    } else {
+                        console.log(`Cleared filter: ${filterType}`);
                     }
 
                     // Apply filters
