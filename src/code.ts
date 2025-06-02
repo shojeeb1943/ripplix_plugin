@@ -96,59 +96,82 @@ figma.ui.onmessage = async (msg) => {
         // Create the vector nodes from SVG
         const svgNode = figma.createNodeFromSvg(svgString);
         console.log("Created SVG node type:", svgNode.type);
-        
         if (!svgNode) {
           throw new Error("Failed to create SVG node");
         }
-        
-        // Create a frame to contain the SVG with proper layout settings
-        const container = figma.createFrame();
-        container.layoutMode = "NONE";
-        container.name = `Ripplix: ${animation.title || 'Animation'}`;
-        container.fills = []; // Transparent background
-        
-        // Resize frame to fit SVG with small padding
-        const padding = 4;
-        container.resize(
-          svgNode.width + padding * 2,
-          svgNode.height + padding * 2
+        // --- Robust scaling and centering logic ---
+        // Find the actual content node (usually the first child)
+        let contentNode = null;
+        if ("children" in svgNode && svgNode.children.length > 0) {
+          contentNode = svgNode.children[0];
+        } else {
+          contentNode = svgNode;
+        }
+        // Get content size
+        const contentWidth = contentNode.width;
+        const contentHeight = contentNode.height;
+        // Desired on-screen size (e.g., 128px)
+        const zoom = figma.viewport.zoom;
+        const desiredScreenSize = 128;
+        const minSize = 64;
+        const maxSize = 512;
+        const finalSize = Math.max(minSize, Math.min(maxSize, desiredScreenSize / zoom));
+        // Calculate scale to fit content inside finalSize with padding
+        const padding = 16;
+        const scale = Math.min(
+          (finalSize - padding) / contentWidth,
+          (finalSize - padding) / contentHeight
         );
-        
-        // Center the SVG in the frame
-        svgNode.x = padding;
-        svgNode.y = padding;
-        
-        // Add the SVG to the container
-        container.appendChild(svgNode);
-        
-        // Position at the center of the viewport
+        // Resize content (only if node supports resize)
+        function canResize(node: SceneNode): node is FrameNode | GroupNode | VectorNode | RectangleNode | EllipseNode | PolygonNode | StarNode | LineNode | TextNode { 
+          return 'resize' in node && typeof (node as any).resize === 'function';
+        }
+        if (canResize(contentNode)) {
+          contentNode.resize(contentWidth * scale, contentHeight * scale);
+        }
+        // Center content in the frame
+        contentNode.x = (finalSize - contentNode.width) / 2;
+        contentNode.y = (finalSize - contentNode.height) / 2;
+        // Remove any extra children (keep only main content)
+        if ("children" in svgNode && svgNode.children.length > 1) {
+          for (const child of Array.from(svgNode.children)) {
+            if (child !== contentNode) child.remove();
+          }
+        }
+        // Resize the container frame
+        svgNode.resize(finalSize, finalSize);
+        // Set frame properties
+        svgNode.name = `Ripplix: ${animation.title || 'Animation'}`;
+        svgNode.fills = [];
+        svgNode.layoutMode = "NONE";
+        // Center in viewport
         const center = figma.viewport.center;
-        container.x = center.x - container.width / 2;
-        container.y = center.y - container.height / 2;
-        
+        svgNode.x = center.x - svgNode.width / 2;
+        svgNode.y = center.y - svgNode.height / 2;
         // Apply hyperlink to the container using the newer API first
         try {
           // @ts-ignore - Using newer Figma API
-          container.hyperlink = { type: "URL", value: animation.url };
+          svgNode.hyperlink = { type: "URL", value: animation.url };
         } catch (hyperlinkError) {
           console.log("Hyperlink API not supported, using relaunchData instead:", hyperlinkError);
-          container.setRelaunchData({ open: animation.url });
+          svgNode.setRelaunchData({ open: animation.url });
         }
-        
         // Store the animation metadata
-        container.setPluginData('animationUrl', animation.url);
-        container.setPluginData('animationTitle', animation.title || '');
-        
+        svgNode.setPluginData('animationUrl', animation.url);
+        svgNode.setPluginData('animationTitle', animation.title || '');
         // Add to current page
-        figma.currentPage.appendChild(container);
-        
+        figma.currentPage.appendChild(svgNode);
         // Select the created node and focus viewport on it
-        figma.currentPage.selection = [container];
-        figma.viewport.scrollAndZoomIntoView([container]);
-        
+        figma.currentPage.selection = [svgNode];
+        figma.viewport.scrollAndZoomIntoView([svgNode]);
+        // --- Flash effect for visibility ---
+        const originalFills = svgNode.fills;
+        svgNode.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 0 }, opacity: 0.7 }];
+        setTimeout(() => {
+          svgNode.fills = originalFills;
+        }, 400);
         // Mark that SVG creation was successful
         svgSuccess = true;
-        
         // Notify UI
         figma.ui.postMessage({ 
           type: 'animation-added', 
@@ -166,14 +189,19 @@ figma.ui.onmessage = async (msg) => {
         console.log("Using text fallback since SVG creation failed");
         
         // Fallback: Create a simple colored rectangle with the hyperlink
-        // First, load the necessary fonts
         await figma.loadFontAsync({ family: "Poppins", style: "Bold" });
         await figma.loadFontAsync({ family: "Poppins", style: "Regular" });
         
-        // Create a container frame
+        const zoom = figma.viewport.zoom;
+        const desiredScreenSize = 128;
+        const scaledSize = desiredScreenSize / zoom;
+        const minSize = 64;
+        const maxSize = 512;
+        const finalSize = Math.max(minSize, Math.min(maxSize, scaledSize));
+        
         const frame = figma.createFrame();
-        frame.resize(32, 32);
-        frame.cornerRadius = 20;
+        frame.resize(finalSize, finalSize);
+        frame.cornerRadius = finalSize / 2; // keep it circular
         
         // Position at center of viewport
         const center = figma.viewport.center;
@@ -183,21 +211,22 @@ figma.ui.onmessage = async (msg) => {
         // Style the frame with Figma colors
         frame.fills = [{
           type: 'SOLID',
-          color: { r: 0.1, g: 0.04, b: 0.36 } // Figma purple
+          color: { r: 0.1, g: 0.04, b: 0.36 }
         }];
         
-        // Add the text "F" as a fallback for the Figma logo
+        // Add the text "R" as a fallback for the logo
         const logoText = figma.createText();
         logoText.fontName = { family: "Poppins", style: "Bold" };
-        logoText.fontSize = 16;
+        logoText.fontSize = finalSize * 0.5; // scale text to frame
         logoText.characters = "R";
         logoText.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 1 } }];
         
         // Center the text in the frame
+        await figma.loadFontAsync({ family: "Poppins", style: "Bold" });
+        logoText.resize(logoText.width, logoText.height);
         logoText.x = (frame.width - logoText.width) / 2;
         logoText.y = (frame.height - logoText.height) / 2;
         
-        // Add text to the frame
         frame.appendChild(logoText);
         
         // Apply hyperlink
@@ -217,7 +246,12 @@ figma.ui.onmessage = async (msg) => {
         figma.currentPage.appendChild(frame);
         figma.currentPage.selection = [frame];
         figma.viewport.scrollAndZoomIntoView([frame]);
-        
+        // --- Flash effect for visibility ---
+        const originalFills = frame.fills;
+        frame.fills = [{ type: 'SOLID', color: { r: 1, g: 1, b: 0 }, opacity: 0.7 }];
+        setTimeout(() => {
+          frame.fills = originalFills;
+        }, 400);
         // Notify UI
         figma.ui.postMessage({ 
           type: 'animation-added', 
