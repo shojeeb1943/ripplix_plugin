@@ -18,6 +18,18 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, autoPlay = true }) 
     }
   }, [videoUrl, autoPlay]);
   
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (videoRef.current.paused) {
+        videoRef.current.play().catch(err => {
+          console.warn('Play failed:', err);
+        });
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  };
+  
   return (
     <div className="video-container">
       <video 
@@ -27,12 +39,8 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, autoPlay = true }) 
         muted
         playsInline
         controls={false}
-        controlsList="nodownload nofullscreen noremoteplayback"
-        disablePictureInPicture
-        disableRemotePlayback
         className="video-player"
-        tabIndex={-1}
-        style={{ pointerEvents: 'none' }}
+        onClick={togglePlay}
       />
     </div>
   );

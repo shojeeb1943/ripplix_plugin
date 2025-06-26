@@ -11,13 +11,9 @@ const AnimationCard: React.FC<AnimationCardProps> = ({ animation }) => {
   const handleAddClick = () => {
     addAnimationToCanvas(animation);
   };
-
-  const handleCardClick = () => {
-    (window as any).openPreview(animation);
-  };
-
+  
   return (
-    <div className="animation-card" onClick={handleCardClick}>
+    <div className="animation-card">
       <div className="video-container">
         <VideoPlayer videoUrl={animation.video_url} />
       </div>
@@ -35,7 +31,7 @@ const AnimationCard: React.FC<AnimationCardProps> = ({ animation }) => {
           )}
         </div>
       </div>
-      <button className="add-button" onClick={(e) => { e.stopPropagation(); handleAddClick(); }}>
+      <button className="add-button" onClick={handleAddClick}>
         Add to Figma
       </button>
     </div>

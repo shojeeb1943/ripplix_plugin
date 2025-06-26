@@ -210,26 +210,6 @@ h1 {
     height: 100%;
     object-fit: cover;
     cursor: pointer;
-    /* Hide native video controls overlays completely */
-    /* For browsers that show overlays on hover/focus, force hide */
-    outline: none;
-}
-
-
-/* Hide video controls overlays for all states */
-
-.video-player::-webkit-media-controls,
-.video-player::-webkit-media-controls-enclosure,
-.video-player::-webkit-media-controls-panel,
-.video-player::-webkit-media-controls-overlay-play-button,
-.video-player::-webkit-media-controls-start-playback-button {
-    display: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
-
-.video-player:focus {
-    outline: none;
 }
 
 .animation-info {

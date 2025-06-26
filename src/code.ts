@@ -54,40 +54,48 @@ figma.ui.onmessage = async (msg) => {
       let svgSuccess = false;
       
       try {
-        // Get the SVG URL prioritizing product_logo over logo
-        const logoUrl = animation.product_logo || animation.logo || "https://www.ripplix.com/wp-content/uploads/2025/06/Pin-4.svg";
-        console.log("Using logo URL:", logoUrl);
-        
-        // Use cached SVG data if available to improve performance
+        // Always use the new logo URL for SVG insertion, ignoring animation.logo
+        const baseLogoUrl = "https://www.ripplix.com/wp-content/uploads/2025/06/Pin-4.svg";
+        const logoUrl = `${baseLogoUrl}?t=${Date.now()}`;
+        console.log("[Ripplix Plugin] Forcing logo URL with cache-busting:", logoUrl);
+        // Use cached SVG data if available to improve performance (cache by base URL only)
         let svgString = '';
-        
-        if (svgCache.has(logoUrl)) {
-          console.log("Using cached SVG data");
-          svgString = svgCache.get(logoUrl);
+        if (svgCache.has(baseLogoUrl)) {
+          console.log("[Ripplix Plugin] Using cached SVG data for logo (base URL)");
+          svgString = svgCache.get(baseLogoUrl);
         } else {
-          // Fetch the SVG content with a timeout
+          // Fetch the SVG content with a timeout and proper headers
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
-          
           try {
-            const response = await fetch(logoUrl, { signal: controller.signal });
+            const response = await fetch(logoUrl, {
+              signal: controller.signal,
+              mode: 'cors',
+              headers: {
+                'Accept': 'image/svg+xml',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              }
+            });
             clearTimeout(timeoutId);
-            
             if (!response.ok) {
-              throw new Error(`Failed to fetch SVG: ${response.status}`);
+              throw new Error(`[Ripplix Plugin] Failed to fetch SVG: ${response.status}`);
             }
-            
             svgString = await response.text();
-            
-            // Cache the SVG data for future use
-            svgCache.set(logoUrl, svgString);
+            // Validate SVG content
+            if (!svgString.trim().startsWith('<svg')) {
+              throw new Error('[Ripplix Plugin] Invalid SVG content received');
+            }
+            // Cache the SVG data for future use (by base URL)
+            svgCache.set(baseLogoUrl, svgString);
+            console.log("[Ripplix Plugin] SVG fetched and cached successfully");
           } catch (fetchError) {
-            console.error("Error fetching SVG:", fetchError);
+            console.error("[Ripplix Plugin] Error fetching SVG:", fetchError);
             // Use a simplified embedded SVG as fallback
             svgString = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" rx="20" fill="#1E0A8C"/><text x="16" y="22" font-family="Poppins" font-size="20" fill="white" text-anchor="middle">R</text></svg>';
           }
         }
-        
         // Ensure the SVG has proper namespace
         if (!svgString.includes('xmlns="http://www.w3.org/2000/svg"')) {
           svgString = svgString.replace('<svg', '<svg xmlns="http://www.w3.org/2000/svg"');
@@ -182,6 +190,12 @@ figma.ui.onmessage = async (msg) => {
       } catch (svgError) {
         // Log the SVG error for debugging
         console.error('SVG creation failed, will fall back to text:', svgError);
+        // Notify UI with error
+        figma.ui.postMessage({
+          type: 'animation-added',
+          success: false,
+          error: svgError instanceof Error ? svgError.message : String(svgError)
+        });
       }
       
       // ONLY create text if SVG creation completely failed
@@ -277,4 +291,4 @@ figma.ui.onmessage = async (msg) => {
     // Close the plugin when UI requests it
     figma.closePlugin();
   }
-}; 
+};
