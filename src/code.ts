@@ -55,7 +55,7 @@ figma.ui.onmessage = async (msg) => {
       
       try {
         // Get the SVG URL prioritizing product_logo over logo
-        const logoUrl = animation.product_logo || animation.logo || "https://www.ripplix.com/wp-content/uploads/2025/04/Logo-figma.svg";
+        const logoUrl = animation.product_logo || animation.logo || "https://www.ripplix.com/wp-content/uploads/2025/06/Pin-4.svg";
         console.log("Using logo URL:", logoUrl);
         
         // Use cached SVG data if available to improve performance
